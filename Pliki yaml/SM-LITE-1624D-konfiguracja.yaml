@@ -651,6 +651,7 @@ output:
     channel: 13
     id: pwm29
 
+# KONFIGURACJA SWIATEŁ LED
 light:
   - platform: monochromatic
     name: "LEDY1"
@@ -831,7 +832,7 @@ light:
 web_server:
   port: 80
 
-
+# USTAWIENIA ELEMENTÓW TEKSTOWYCH
 text_sensor:
   - platform: template
     name: "ESP32-M03 Uptime"
@@ -843,17 +844,17 @@ text_sensor:
     entity_category: diagnostic
     icon: "mdi:ip-network"
     lambda: return { id(eth).get_ip_address().str() };
-    update_interval: 20s
+    update_interval: 10s
 
-#font
+#USTAWENIA CZCIONEK
 font:
-- file: "gfonts://Nunito"
+- file: 'arial.ttf'
   id: font1
-  size: 10
+  size: 13
 
-- file: gfonts://Material+Symbols+Outlined
+- file: 'materialdesignicons-webfont.ttf'
   id: materialdesignicons
-  size: 14
+  size: 15
   glyphs: [
       "\U000F0A5F", # IP
       "\U000F04A2", # signal
@@ -863,10 +864,7 @@ font:
       "\U000F050F" # mdi-home-thermometer
       ]
 
-- file: 'arial.ttf'
-  id: font2
-  size: 7
-
+# USTAWIENIA EKRANU
 display:
   - platform: ssd1306_i2c
     model: "SSD1306_128X64"
@@ -876,10 +874,10 @@ display:
       seconds = seconds % (24 * 3600);
       int hours = seconds / 3600;
       it.print(0, 0, id(materialdesignicons), TextAlign::LEFT, "\U000F0A5F");
-      it.printf(17, 0,id(font1), "IP %s", id(ip_address).state.c_str());
+      it.printf(18, 1,id(font1), "IP %s", id(ip_address).state.c_str());
       it.print(0, 16, id(materialdesignicons), TextAlign::LEFT, "\U000F0FA9");
-      it.printf(17,16,id(font1),"%d dni, %02d godzin",days,hours);
+      it.printf(18,17,id(font1),"%d dni, %02d godzin",days,hours);
       it.print(0, 32, id(materialdesignicons), TextAlign::LEFT, "\U000F048B");
-      it.printf(17, 32, id(font1), "SmartBOB"); 
+      it.printf(18, 33, id(font1), "SmartBOB L1624"); 
       it.print(0, 48, id(materialdesignicons), TextAlign::LEFT, "\U000F050F");
-      it.printf(17, 48, id(font1), "%.1f°, %.1f°", id(temp_1).state, id(temp_2).state); 
+      it.printf(18, 49, id(font1), "%.1f°, %.1f°", id(temp_1).state, id(temp_2).state); 
