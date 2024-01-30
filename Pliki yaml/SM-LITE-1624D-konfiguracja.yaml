@@ -850,18 +850,18 @@ text_sensor:
 font:
 - file: 'arial.ttf'
   id: font1
-  size: 13
+  size: 12
 
 - file: 'materialdesignicons-webfont.ttf'
   id: materialdesignicons
   size: 15
   glyphs: [
-      "\U000F0A5F", # IP
+      "\U000F0317", # lan
       "\U000F04A2", # signal
       "\U000F05A9", # wifi
       "\U000F048B", # server
       "\U000F0FA9", # clock
-      "\U000F050F" # mdi-home-thermometer
+      "\U000F050F" # thermometer
       ]
 
 # USTAWIENIA EKRANU
@@ -873,7 +873,7 @@ display:
       int days = seconds / (24 * 3600);
       seconds = seconds % (24 * 3600);
       int hours = seconds / 3600;
-      it.print(0, 0, id(materialdesignicons), TextAlign::LEFT, "\U000F0A5F");
+      it.print(0, 0, id(materialdesignicons), TextAlign::LEFT, "\U000F0317");
       it.printf(18, 1,id(font1), "IP %s", id(ip_address).state.c_str());
       it.print(0, 16, id(materialdesignicons), TextAlign::LEFT, "\U000F0FA9");
       it.printf(18,17,id(font1),"%d dni, %02d godzin",days,hours);
