@@ -1,0 +1,815 @@
+# NAZWA
+esphome:
+  name: smartbob_pro
+  friendly_name: smartbob_pro
+  on_boot:
+    then:
+      # read the RTC time once when the system boots
+      ds1307.read_time:
+
+# PLATFORMA
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# TIME RTC
+time:
+  - platform: ds1307
+    id: ds1307_time
+  - platform: homeassistant
+    id: homeassistant_time
+  - platform: sntp
+    id: sntp_time
+    timezone: Europe/Sofia
+    servers:
+     - 0.pool.ntp.org
+     - 1.pool.ntp.org
+     - 2.pool.ntp.org
+    on_time_sync:
+      then:
+        # ... and update the RTC when the synchronization was successful
+        ds1307.write_time:
+
+
+# UART-RS485
+uart:
+  rx_pin: 13
+  tx_pin: 33
+  baud_rate: 2400 #if your energy meter is SDM230M or SDM120M than change the baud_rate: 2400
+  stop_bits: 1
+
+# CAN
+canbus:
+  - platform: esp32_can
+    tx_pin: GPIO4
+    rx_pin: GPIO14
+    can_id: 4
+    bit_rate: 50kbps
+
+sensor:
+  - platform: sdm_meter
+    phase_a:
+      current:
+        name: "SDM630M Current "
+      voltage:
+        name: "SDM630M Voltage1"
+      active_power:
+        name: "SDM630M Power "
+      power_factor:
+        name: "SDM630M Power Factor"
+      apparent_power:
+        name: "SDM630M Apparent Power"
+      reactive_power:
+        name: "SDM630M Reactive Power"
+      phase_angle:
+        name: "SDM630M Phase Angle"
+    phase_b:
+      voltage:
+        name: "SDM630M Voltage2"
+    phase_c:
+      voltage:
+        name: "SDM630M Voltage3"
+    frequency:
+      name: "SDM630M Frequency"
+    total_power:
+      name: "SDM630M Total Power"
+      id: poww
+    import_active_energy:
+      name: "SDM630M Import Active Energy"
+    export_active_energy:
+      name: "SDM630M Export Active Energy"
+    import_reactive_energy:
+      name: "SDM630M Import Reactive Energy"
+    export_reactive_energy:
+      name: "SDM630M Export Reactive Energy"
+    update_interval: 55s
+
+# LOGOWANIE
+logger:
+  level: VERBOSE
+
+# KLUCZ HA - USTAW SWÓJ
+api:
+  encryption:
+    key: "98MUt/upiZL3PhfR1Ynu7ji8EHjd8tuvR8zOAS2/RDI="
+  reboot_timeout: 0s
+
+# KLUCZ OTA - USTAW SWÓJ
+ota:
+  password: "6d492e327cf49782cc7de2da362196dc"
+
+# KONFIGURACJA LAN
+ethernet:
+  type: LAN8720
+  mdc_pin: GPIO23
+  mdio_pin: GPIO18
+  #clk_mode: GPIO0_IN
+  #power_pin: GPIO16
+  clk_mode: GPIO17_OUT
+  phy_addr: 1
+
+  # STAŁE IP
+  manual_ip:
+    static_ip: 192.168.0.40
+    gateway: 192.168.0.1
+    subnet: 255.255.255.0
+    dns1 : 8.8.8.8
+    dns2 : 8.8.4.4
+
+# KONFIGURACJA I2C
+i2c:
+   - id: bus_a
+     sda: 5
+     scl: 15
+     scan: true
+     frequency: 100kHz
+
+# KONFIGURACJA MCP23017 x2
+mcp23017:
+  - id: 'mcp23017_hub_in'
+    address: 0x21
+  - id: 'mcp23017_hub_in2'
+    address: 0x22
+  - id: 'mcp23017_hub_out1'
+    address: 0x23
+  - id: 'mcp23017_hub_out2'
+    address: 0x24
+
+# KONFIGURACJA PCA9685
+pca9685:
+  - id: 'pca9685_hub'
+    frequency: 500
+
+
+# KONFIGURACJA WEJŚĆ
+binary_sensor:
+## MCP IN 0x21
+  - platform: gpio
+    name: "INPUT-01"
+    id: input_01
+    pin:
+      mcp23xxx: mcp23017_hub_in
+      number: 7
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay_01
+  - platform: gpio
+    name: "INPUT-02"
+    id: input_02
+    pin:
+      mcp23xxx: mcp23017_hub_in
+      number: 6
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay_02
+  - platform: gpio
+    name: "INPUT-03"
+    id: input_03
+    pin:
+      mcp23xxx: mcp23017_hub_in
+      number: 5
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay_03
+  - platform: gpio
+    name: "INPUT-04"
+    id: input_04
+    pin:
+      mcp23xxx: mcp23017_hub_in
+      number: 4
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay_04
+  - platform: gpio
+    name: "INPUT-05"
+    id: input_05
+    pin:
+      mcp23xxx: mcp23017_hub_in
+      number: 3
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay_05
+  - platform: gpio
+    name: "INPUT-06"
+    id: input_06
+    pin:
+      mcp23xxx: mcp23017_hub_in
+      number: 2
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay_06
+  - platform: gpio
+    name: "INPUT-07"
+    id: input_07
+    pin:
+      mcp23xxx: mcp23017_hub_in
+      number: 1
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay_07
+  - platform: gpio
+    name: "INPUT-08"
+    id: input_08
+    pin:
+      mcp23xxx: mcp23017_hub_in
+      number: 0
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay_08
+  - platform: gpio
+    name: "INPUT-09"
+    id: input_09
+    pin:
+      mcp23xxx: mcp23017_hub_in
+      number: 8
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay_09
+  - platform: gpio
+    name: "INPUT-10"
+    id: input_10
+    pin:
+      mcp23xxx: mcp23017_hub_in
+      number: 9
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay_10
+  - platform: gpio
+    name: "INPUT-11"
+    id: input_11
+    pin:
+      mcp23xxx: mcp23017_hub_in
+      number: 10
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay_11
+  - platform: gpio
+    name: "INPUT-12"
+    id: input_12
+    pin:
+      mcp23xxx: mcp23017_hub_in
+      number: 11
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay_12
+  - platform: gpio
+    name: "INPUT-13"
+    id: input_13
+    pin:
+      mcp23xxx: mcp23017_hub_in
+      number: 12
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay_13
+  - platform: gpio
+    name: "INPUT-14"
+    id: input_14
+    pin:
+      mcp23xxx: mcp23017_hub_in
+      number: 13
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay_14
+  - platform: gpio
+    name: "INPUT-15"
+    id: input_15
+    pin:
+      mcp23xxx: mcp23017_hub_in
+      number: 14
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay_15
+  - platform: gpio
+    name: "INPUT-16"
+    id: input_16
+    pin:
+      mcp23xxx: mcp23017_hub_in
+      number: 15
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay_16
+
+  ## MCP IN 0x22
+  - platform: gpio
+    name: "INPUT-17"
+    id: input_17
+    pin:
+      mcp23xxx: mcp23017_hub_in2
+      number: 7
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay_17
+  - platform: gpio
+    name: "INPUT-18"
+    id: input_18
+    pin:
+      mcp23xxx: mcp23017_hub_in2
+      number: 6
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay_18
+  - platform: gpio
+    name: "INPUT-19"
+    id: input_19
+    pin:
+      mcp23xxx: mcp23017_hub_in2
+      number: 5
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - light.toggle: LED_RGB1
+
+  - platform: gpio
+    name: "INPUT-20"
+    id: input_20
+    pin:
+      mcp23xxx: mcp23017_hub_in2
+      number: 4
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - light.toggle: LED_RGB2
+  - platform: gpio
+    name: "INPUT-21"
+    id: input_21
+    pin:
+      mcp23xxx: mcp23017_hub_in2
+      number: 3
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - light.toggle: LED_RGB3
+  - platform: gpio
+    name: "INPUT-22"
+    id: input_22
+    pin:
+      mcp23xxx: mcp23017_hub_in2
+      number: 2
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - light.toggle: LED_RGB4
+  - platform: gpio
+    name: "INPUT-23"
+    id: input_23
+    pin:
+      mcp23xxx: mcp23017_hub_in2
+      number: 1
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - light.toggle: LED_RGB5
+  - platform: gpio
+    name: "INPUT-24"
+    id: input_24
+    pin:
+      mcp23xxx: mcp23017_hub_in2
+      number: 0
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - light.toggle: LED_RGB6
+
+## KEY
+
+  - platform: gpio
+    name: "KEY-1"
+    id: key_1
+    pin:
+      mcp23xxx: mcp23017_hub_in2
+      number: 8
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay_01
+  - platform: gpio
+    name: "KEY-2"
+    id: key_2
+    pin:
+      mcp23xxx: mcp23017_hub_in2
+      number: 9
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay_18
+  - platform: gpio
+    name: "KEY-3"
+    id: key_3
+    pin:
+      mcp23xxx: mcp23017_hub_in2
+      number: 10
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - light.toggle: LED_RGB12
+
+
+#KONFIGURACJA WYJŚĆ
+switch:
+  - platform: gpio
+    pin: 12
+    name: "Buzzer"
+#MCP OUT 0x23
+  - platform: gpio
+    name: "REALY-01"
+    id: relay_01
+    pin:
+      mcp23xxx: mcp23017_hub_out1
+      number: 8
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "REALY-02"
+    id: relay_02
+    pin:
+      mcp23xxx: mcp23017_hub_out1
+      number: 9
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "REALY-03"
+    id: relay_03
+    pin:
+      mcp23xxx: mcp23017_hub_out1
+      number: 10
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "REALY-04"
+    id: relay_04
+    pin:
+      mcp23xxx: mcp23017_hub_out1
+      number: 11
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "REALY-05"
+    id: relay_05
+    pin:
+      mcp23xxx: mcp23017_hub_out1
+      number: 12
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "REALY-06"
+    id: relay_06
+    pin:
+      mcp23xxx: mcp23017_hub_out1
+      number: 13
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "REALY-07"
+    id: relay_07
+    pin:
+      mcp23xxx: mcp23017_hub_out1
+      number: 14
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "REALY-08"
+    id: relay_08
+    pin:
+      mcp23xxx: mcp23017_hub_out1
+      number: 15
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "REALY-09"
+    id: relay_09
+    pin:
+      mcp23xxx: mcp23017_hub_out1
+      number: 0
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "REALY-10"
+    id: relay_10
+    pin:
+      mcp23xxx: mcp23017_hub_out1
+      number: 1
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "REALY-11"
+    id: relay_11
+    pin:
+      mcp23xxx: mcp23017_hub_out1
+      number: 2
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "REALY-12"
+    id: relay_12
+    pin:
+      mcp23xxx: mcp23017_hub_out1
+      number: 3
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "REALY-13"
+    id: relay_13
+    pin:
+      mcp23xxx: mcp23017_hub_out1
+      number: 4
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "REALY-14"
+    id: relay_14
+    pin:
+      mcp23xxx: mcp23017_hub_out1
+      number: 5
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "REALY-15"
+    id: relay_15
+    pin:
+      mcp23xxx: mcp23017_hub_out1
+      number: 6
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "REALY-16"
+    id: relay_16
+    pin:
+      mcp23xxx: mcp23017_hub_out1
+      number: 7
+      mode: OUTPUT
+      inverted: false
+
+#MCP OUT 0x24
+  - platform: gpio
+    name: "REALY-17"
+    id: relay_17
+    pin:
+      mcp23xxx: mcp23017_hub_out2
+      number: 6
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "REALY-18"
+    id: relay_18
+    pin:
+      mcp23xxx: mcp23017_hub_out2
+      number: 7
+      mode: OUTPUT
+      inverted: false
+
+output:
+  - platform: pca9685
+    channel: 2
+    id: pwm01
+  - platform: pca9685
+    channel: 3
+    id: pwm02
+  - platform: pca9685
+    channel: 4
+    id: pwm03
+  - platform: pca9685
+    channel: 5
+    id: pwm04
+  - platform: pca9685
+    channel: 6
+    id: pwm05
+  - platform: pca9685
+    channel: 7
+    id: pwm06
+  - platform: pca9685
+    channel: 10
+    id: pwm07
+  - platform: pca9685
+    channel: 11
+    id: pwm08
+  - platform: pca9685
+    channel: 12
+    id: pwm09
+  - platform: pca9685
+    channel: 13
+    id: pwm10
+  - platform: pca9685
+    channel: 14
+    id: pwm11
+  - platform: pca9685
+    channel: 15
+    id: pwm12
+
+
+light:
+  - platform: monochromatic
+    name: "LEDY1"
+    id: LED_RGB1
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm01
+  - platform: monochromatic
+    name: "LEDY2"
+    id: LED_RGB2
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm02
+  - platform: monochromatic
+    name: "LEDY3"
+    id: LED_RGB3
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm03
+  - platform: monochromatic
+    name: "LEDY4"
+    id: LED_RGB4
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm04
+  - platform: monochromatic
+    name: "LEDY5"
+    id: LED_RGB5
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm05
+  - platform: monochromatic
+    name: "LEDY6"
+    id: LED_RGB6
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm06
+  - platform: monochromatic
+    name: "LEDY7"
+    id: LED_RGB7
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm07
+  - platform: monochromatic
+    name: "LEDY8"
+    id: LED_RGB8
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm08
+  - platform: monochromatic
+    name: "LEDY9"
+    id: LED_RGB9
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm09
+  - platform: monochromatic
+    name: "LEDY10"
+    id: LED_RGB10
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm10
+  - platform: monochromatic
+    name: "LEDY11"
+    id: LED_RGB11
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm11
+  - platform: monochromatic
+    name: "LEDY12"
+    id: LED_RGB12
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm12
+
+#KONFIGURACJA GUI WEB
+web_server:
+  port: 80
+
+
+#KONFIGURACJA POZOSTAŁE
+text_sensor:
+  - platform: template
+    name: "ESP32-M03 Uptime"
+    id: uptime_human_M03
+    icon: mdi:clock-start
+
+
+
+#font
+font:
+- file: 'arial.ttf'
+  id: font1
+  size: 10
+
+- file: 'materialdesignicons-webfont.ttf'
+  id: materialdesignicons
+  size: 14
+  glyphs: [
+      "\U000F0A5F", # IP
+      "\U000F04A2", # signal
+      "\U000F05A9", # wifi
+      "\U000F048B", # server
+      "\U000F0FA9" # clock
+      ]
+
+- file: 'arial.ttf'
+  id: font2
+  size: 7
+
+display:
+  - platform: ssd1306_i2c
+    model: "SH1106 128X64"
+    lambda: |-
+     
+     it.print(0, 18, id(materialdesignicons), TextAlign::LEFT, "\U000F048B");
+     it.printf(0, 0, id(font1), "Moc 1f %.2fW" , id(poww).state);
+     it.printf(16, 18, id(font1), "SmartBOB"); 
