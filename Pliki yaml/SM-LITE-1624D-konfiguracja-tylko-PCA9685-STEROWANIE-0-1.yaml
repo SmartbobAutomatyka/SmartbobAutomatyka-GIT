@@ -1,0 +1,1052 @@
+# NAZWA STEROWNIKA
+esphome:
+  name: sm-lite-1624m
+  friendly_name: sm-lite-1624m
+  on_boot:
+    then:
+      # read the RTC time once when the system boots
+      ds1307.read_time:
+
+# DODATKOWE BIBLIOTEKI
+external_components:
+  - source:
+      type: git
+      url: https://github.com/esphome/esphome.git
+      ref: 2022.12.8
+    components: [ pca9685 ]
+
+# KLUCZ HA - USTAW SWÓJ
+api:
+  encryption:
+    key: "98MUt/upiZL3PhfR1Ynu7ji8EHjd8tuvR8zOAS2/RDI="
+  reboot_timeout: 0s
+
+# KLUCZ OTA - USTAW SWÓJ
+ota:
+  password: "6d492e327cf49782cc7de2da362196dc"
+
+# RODZAJ PROCESORA
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# LOGOWANIE
+logger:
+  level: VERBOSE
+
+# KOMNUNIKACJA UART-RS485 - USTAW SWOJĄ CZESTOLIWOŚĆ
+uart:
+  rx_pin: 13
+  tx_pin: 33
+  baud_rate: 2400
+  stop_bits: 1
+
+# KONFIGURACJA CZUJNIKÓW I PERYFERIÓW
+sensor:
+  # LICZNIK ENRGII SDM
+  - platform: sdm_meter
+    phase_a:
+      current:
+        name: "SDM630M Current "
+      voltage:
+        name: "SDM630M Voltage1"
+      active_power:
+        name: "SDM630M Power "
+      power_factor:
+        name: "SDM630M Power Factor"
+      apparent_power:
+        name: "SDM630M Apparent Power"
+      reactive_power:
+        name: "SDM630M Reactive Power"
+      phase_angle:
+        name: "SDM630M Phase Angle"
+    phase_b:
+      voltage:
+        name: "SDM630M Voltage2"
+    phase_c:
+      voltage:
+        name: "SDM630M Voltage3"
+    frequency:
+      name: "SDM630M Frequency"
+    total_power:
+      name: "SDM630M Total Power"
+      id: poww
+    import_active_energy:
+      name: "SDM630M Import Active Energy"
+    export_active_energy:
+      name: "SDM630M Export Active Energy"
+    import_reactive_energy:
+      name: "SDM630M Import Reactive Energy"
+    export_reactive_energy:
+      name: "SDM630M Export Reactive Energy"
+    update_interval: 15s
+
+  # PRZEKŁADNIK PRĄDOWY
+  - platform: ct_clamp
+    sensor: adc_sensor_1
+    name: "Prąd z przekładnika"
+    update_interval: 20s
+    filters:
+      - calibrate_linear:
+        - 0 -> 0
+        - 0.1 -> 10
+
+
+  # PRZEKŁADNIK PRĄDOWY ADC
+  - platform: adc
+    pin: GPIO36
+    id: adc_sensor_1
+    name: "Przekladni"
+
+
+  # WEJŚCIE POMIARU NAPIĘCIA DO 60V
+  - platform: adc
+    pin: GPIO34
+    id: adc_sensor_2
+    name: "Napięcie HV 1"
+    filters:
+      - multiply: 20.81
+    update_interval: 10s
+
+  # WEJŚCIE POMIARU NAPIĘCIA DO 60V
+  - platform: adc
+    pin: GPIO35
+    id: adc_sensor_3
+    name: "Napięcie HV 2"
+    filters:
+      - multiply: 20.81
+    update_interval: 10s
+
+  # WEJŚCIE POMIARU NAPIĘCIA DO 3.3V
+  - platform: adc
+    pin: GPIO39
+    id: adc_sensor_4
+    name: "Napięcie LV"
+
+  # TEMPERATURA PROCESORA
+  - platform: internal_temperature
+    name: "Temperatura CPU"
+    update_interval: 30s
+
+  # CZUJNIK POMIARU TEMPERATURY PCB 1 - USTAW KTÓRE OBWODY MAJĄ BYĆ WYŁĄCZONE W PRZYPADKU PRZEKROCZENIA TEMPERATURY
+  - platform: tmp102
+    name: "Temperatura PCB 1"
+    address: 0x48
+    id: temp_1
+    update_interval: 5s
+    on_value_range:
+        - above: 75.0
+          then:
+            - switch.turn_off: relay1
+            - switch.turn_off: relay2
+            - switch.turn_off: relay3
+            - switch.turn_off: relay4
+            - switch.turn_off: relay5
+            - switch.turn_off: relay6
+            - switch.turn_off: relay7
+            - switch.turn_off: relay8
+            - switch.turn_off: relay9
+            - switch.turn_off: relay10
+            - switch.turn_off: relay11
+            - switch.turn_off: relay12
+            - switch.turn_off: relay13
+            - switch.turn_off: relay14
+            - switch.turn_off: relay15
+            - switch.turn_off: relay16
+            - switch.turn_off: relay17
+            - switch.turn_off: relay18
+            - switch.turn_off: relay19
+            - switch.turn_off: relay20
+            - switch.turn_off: relay21
+            - switch.turn_off: relay22
+            - switch.turn_off: relay23
+            - switch.turn_off: relay24
+            - switch.turn_on: alarm_01
+        - below: 74.0
+          then:
+            - switch.turn_off: alarm_01
+
+  # CZUJNIK POMIARU TEMPERATURY PCB 1 - USTAW KTÓRE OBWODY MAJĄ BYĆ WYŁĄCZONE W PRZYPADKU PRZEKROCZENIA TEMPERATURY
+  - platform: tmp102
+    name: "Temperatura PCB 2"
+    address: 0x49
+    id: temp_2
+    update_interval: 5s
+    on_value_range:
+        - above: 75.0
+          then:
+            - switch.turn_off: relay1
+            - switch.turn_off: relay2
+            - switch.turn_off: relay3
+            - switch.turn_off: relay4
+            - switch.turn_off: relay5
+            - switch.turn_off: relay6
+            - switch.turn_off: relay7
+            - switch.turn_off: relay8
+            - switch.turn_off: relay9
+            - switch.turn_off: relay10
+            - switch.turn_off: relay11
+            - switch.turn_off: relay12
+            - switch.turn_off: relay13
+            - switch.turn_off: relay14
+            - switch.turn_off: relay15
+            - switch.turn_off: relay16
+            - switch.turn_off: relay17
+            - switch.turn_off: relay18
+            - switch.turn_off: relay19
+            - switch.turn_off: relay20
+            - switch.turn_off: relay21
+            - switch.turn_off: relay22
+            - switch.turn_off: relay23
+            - switch.turn_off: relay24
+            - switch.turn_on: alarm_01
+        - below: 74.0
+          then:
+            - switch.turn_off: alarm_01
+
+  # POMIAR CZASU OD OSTATNIEGO URUCHOMIENIA
+  - platform: uptime
+    name: Uptime Sensor
+    id: uptime_sensor_M03
+    internal: true
+    update_interval: 60s
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human_M03
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor_M03).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? to_string(days) + "d " : "") +
+                (hours ? to_string(hours) + "h " : "") +
+                (minutes ? to_string(minutes) + "m " : "") +
+                (to_string(seconds) + "s")
+              ).c_str();
+
+  # POMIAR CZASU OD OSTATNIEGO URUCHOMIENIA
+  - platform: uptime
+    name: "Uptime Sensor M03"
+    id: upt_M03
+    internal: true
+
+#KONFIGRUACJA ZEGARA CZASU RZECZYWISTEGO
+time:
+  - platform: ds1307
+    id: ds1307_time
+  - platform: homeassistant
+    id: homeassistant_time
+  - platform: sntp
+    id: sntp_time
+    timezone: Europe/Sofia
+    servers:
+     - 0.pool.ntp.org
+     - 1.pool.ntp.org
+     - 2.pool.ntp.org
+    on_time_sync:
+      then:
+        # ... and update the RTC when the synchronization was successful
+        ds1307.write_time:
+
+# KONFIGURACJA LAN LUB WIFI
+#wifi:
+#  ssid: "12345678"
+#  password: "12345678"
+#  id: eth
+
+ethernet:
+  type: LAN8720
+  mdc_pin: GPIO23
+  mdio_pin: GPIO18
+  power_pin: GPIO16
+  clk_mode: GPIO17_OUT
+  phy_addr: 1
+  id: eth
+
+  # STAŁE IP
+  #manual_ip:
+    #static_ip: 192.168.0.40
+    #gateway: 192.168.0.1
+    #subnet: 255.255.255.0
+    #dns1 : 8.8.8.8
+    #dns2 : 8.8.4.4
+
+
+# KONFIGURACJA I2C
+i2c:
+   - id: bus_a
+     sda: 5
+     scl: 15
+     scan: true
+     frequency: 400kHz
+
+# KONFIGURACJA MCP23017
+mcp23017:
+  - id: 'mcp23017_hub_2'
+    address: 0x21
+
+# KONFIGURACJA DODATKOWYCH MCP23017 ZAMIENNIE DO PCA9685
+  #- id: 'mcp23017_hub_out_1'
+  #  address: 0x20
+  - id: 'mcp23017_hub_out_2'
+    address: 0x23
+
+
+# KONFIGURACJA DIODY LED ORAZ BUZZERA OD ALARMU
+switch:
+  - platform: gpio
+    pin: GPIO4
+    name: "ALARM"
+    id: alarm_01
+  - platform: gpio
+    pin: GPIO12
+    name: "STATUS LED"
+    id: status_01
+  - platform: template
+    name: "Relay 1"
+    id: relay1
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm01
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm01
+  - platform: template
+    name: "Relay 2"
+    id: relay2
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm02
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm02
+  - platform: template
+    name: "Relay 3"
+    id: relay3
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm03
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm03
+  - platform: template
+    name: "Relay 4"
+    id: relay4
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm04
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm04
+  - platform: template
+    name: "Relay 5"
+    id: relay5
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm05
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm05
+  - platform: template
+    name: "Relay 6"
+    id: relay6
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm06
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm06
+  - platform: template
+    name: "Relay 7"
+    id: relay7
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm07
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm07
+  - platform: template
+    name: "Relay 8"
+    id: relay8
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm08
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm08
+  - platform: template
+    name: "Relay 9"
+    id: relay9
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm09
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm09
+  - platform: template
+    name: "Relay 10"
+    id: relay10
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm10
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm10
+  - platform: template
+    name: "Relay 11"
+    id: relay11
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm11
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm11
+  - platform: template
+    name: "Relay 12"
+    id: relay12
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm12
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm12
+  - platform: template
+    name: "Relay 13"
+    id: relay13
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm13
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm13
+  - platform: template
+    name: "Relay 14"
+    id: relay14
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm14
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm14
+  - platform: template
+    name: "Relay 15"
+    id: relay15
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm15
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm15
+  - platform: template
+    name: "Relay 16"
+    id: relay16
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm16
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm16
+  - platform: template
+    name: "Relay 17"
+    id: relay17
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm17
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm17
+  - platform: template
+    name: "Relay 18"
+    id: relay18
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm18
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm18
+  - platform: template
+    name: "Relay 19"
+    id: relay19
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm19
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm19
+  - platform: template
+    name: "Relay 20"
+    id: relay20
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm20
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm20
+  - platform: template
+    name: "Relay 21"
+    id: relay21
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm21
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm21
+  - platform: template
+    name: "Relay 22"
+    id: relay22
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm22
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm22
+  - platform: template
+    name: "Relay 23"
+    id: relay23
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm23
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm23
+  - platform: template
+    name: "Relay 24"
+    id: relay24
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm24
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm24
+  - platform: template
+    name: "Out 25"
+    id: relay25
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm25
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm25
+  - platform: template
+    name: "Out 26"
+    id: relay26
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm26
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm26
+  - platform: template
+    name: "Out 27"
+    id: relay27
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm27
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm27
+  - platform: template
+    name: "Out 28"
+    id: relay28
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm28
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm28
+  - platform: template
+    name: "Out 29"
+    id: relay29
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm29
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm29
+
+# KONFIGURACJA PCA9685
+pca9685:
+  - id: 'pca9685_hub_1'
+    frequency: 500
+    address: 0x40
+  - id: 'pca9685_hub_2'
+    frequency: 500
+    address: 0x43
+
+# KONFIGURACJA WEJŚĆ
+binary_sensor:
+  - platform: gpio
+    name: "INPUT-01"
+    id: input_01
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 7
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay1
+  - platform: gpio
+    name: "INPUT-02"
+    id: input_02
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 6
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay2
+  - platform: gpio
+    name: "INPUT-03"
+    id: input_03
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 5
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay3
+  - platform: gpio
+    name: "INPUT-04"
+    id: input_04
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 4
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay4
+  - platform: gpio
+    name: "INPUT-05"
+    id: input_05
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 3
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay5
+  - platform: gpio
+    name: "INPUT-06"
+    id: input_06
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 2
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay6
+  - platform: gpio
+    name: "INPUT-07"
+    id: input_07
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 1
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay7
+  - platform: gpio
+    name: "INPUT-08"
+    id: input_08
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 0
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay8
+  - platform: gpio
+    name: "INPUT-09"
+    id: input_09
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 15
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay9
+  - platform: gpio
+    name: "INPUT-10"
+    id: input_10
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 14
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay10
+  - platform: gpio
+    name: "INPUT-11"
+    id: input_11
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 13
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay11
+  - platform: gpio
+    name: "INPUT-12"
+    id: input_12
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 12
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay12
+  - platform: gpio
+    name: "INPUT-13"
+    id: input_13
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 11
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay13
+  - platform: gpio
+    name: "INPUT-14"
+    id: input_14
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 10
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay14
+  - platform: gpio
+    name: "INPUT-15"
+    id: input_15
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 9
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay15
+  - platform: gpio
+    name: "INPUT-16"
+    id: input_16
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 8
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+       then:
+        - switch.toggle: relay16
+
+
+output:
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 4
+    id: pwm01
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 5
+    id: pwm02
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 6
+    id: pwm03
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 7
+    id: pwm04
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 8
+    id: pwm05
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 9
+    id: pwm06
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 10
+    id: pwm07
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 11
+    id: pwm08
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 12
+    id: pwm09
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 13
+    id: pwm10
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 14
+    id: pwm11
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 15
+    id: pwm12
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 4
+    id: pwm13
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 5
+    id: pwm14
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 6
+    id: pwm15
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 7
+    id: pwm16
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 0
+    id: pwm17
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 1
+    id: pwm18
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 2
+    id: pwm19
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 3
+    id: pwm20
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 0
+    id: pwm21
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 1
+    id: pwm22
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 2
+    id: pwm23
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 3
+    id: pwm24
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 9
+    id: pwm25
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 10
+    id: pwm26
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 11
+    id: pwm27
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 12
+    id: pwm28
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 13
+    id: pwm29
+
+
+# AKTYWACJA WEB SERWERA
+web_server:
+  port: 80
+
+# USTAWIENIA ELEMENTÓW TEKSTOWYCH
+text_sensor:
+  - platform: template
+    name: "ESP32-M03 Uptime"
+    id: uptime_human_M03
+    icon: mdi:clock-start
+  - platform: template
+    name: "IP"
+    id: ip_address
+    entity_category: diagnostic
+    icon: "mdi:ip-network"
+    lambda: return { id(eth).get_ip_address().str() };
+    update_interval: 10s
+
+#USTAWENIA CZCIONEK
+font:
+- file: 'arial.ttf'
+  id: font1
+  size: 12
+
+- file: 'materialdesignicons-webfont.ttf'
+  id: materialdesignicons
+  size: 15
+  glyphs: [
+      "\U000F0317", # lan
+      "\U000F04A2", # signal
+      "\U000F05A9", # wifi
+      "\U000F048B", # server
+      "\U000F0FA9", # clock
+      "\U000F050F" # thermometer
+      ]
+
+# USTAWIENIA EKRANU
+display:
+  - platform: ssd1306_i2c
+    model: "SSD1306_128X64"
+    lambda: |-
+      int seconds = round(id(upt_M03).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600);
+      int hours = seconds / 3600;
+      it.print(0, 0, id(materialdesignicons), TextAlign::LEFT, "\U000F0317");
+      it.printf(18, 1,id(font1), "%s", id(ip_address).state.c_str());
+      it.print(0, 16, id(materialdesignicons), TextAlign::LEFT, "\U000F0FA9");
+      it.printf(18,17,id(font1),"%d dni, %02d godzin",days,hours);
+      it.print(0, 32, id(materialdesignicons), TextAlign::LEFT, "\U000F048B");
+      it.printf(18, 33, id(font1), "SM-LITE-1624D"); 
+      it.print(0, 48, id(materialdesignicons), TextAlign::LEFT, "\U000F050F");
+      it.printf(18, 49, id(font1), "%.1f°, %.1f°", id(temp_1).state, id(temp_2).state); 
