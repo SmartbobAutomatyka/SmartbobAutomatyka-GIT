@@ -1,0 +1,385 @@
+esphome:
+  name: sm-lite-1624m-16pwm-8mcp-hager
+  friendly_name: sm-lite-1624m-16pwm-8mcp-hager
+  on_boot:
+    then:
+      # read the RTC time once when the system boots
+      ds1307.read_time:
+
+# DODATKOWE BIBLIOTEKI
+external_components:
+  - source:
+      type: git
+      url: https://github.com/esphome/esphome.git
+      ref: 2022.12.8
+    components: [ pca9685 ]
+
+# KLUCZ HA - USTAW SWÓJ
+api:
+  encryption:
+    key: "98MUt/upiZL3PhfR1Ynu7ji8EHjd8tuvR8zOAS2/RDI="
+  reboot_timeout: 0s
+
+# KLUCZ OTA - USTAW SWÓJ
+ota:
+  password: "6d492e327cf49782cc7de2da362196dc"
+
+# RODZAJ PROCESORA
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# LOGOWANIE
+logger:
+  level: VERBOSE
+
+# KOMNUNIKACJA UART-RS485 - USTAW SWOJĄ CZESTOLIWOŚĆ
+uart:
+  rx_pin: 13
+  tx_pin: 33
+  baud_rate: 2400
+  stop_bits: 1
+
+# KONFIGURACJA CZUJNIKÓW I PERYFERIÓW
+sensor:
+  # LICZNIK ENRGII SDM
+  - platform: sdm_meter
+    phase_a:
+      current:
+        name: "SDM630M Current "
+      voltage:
+        name: "SDM630M Voltage1"
+      active_power:
+        name: "SDM630M Power "
+      power_factor:
+        name: "SDM630M Power Factor"
+      apparent_power:
+        name: "SDM630M Apparent Power"
+      reactive_power:
+        name: "SDM630M Reactive Power"
+      phase_angle:
+        name: "SDM630M Phase Angle"
+    phase_b:
+      voltage:
+        name: "SDM630M Voltage2"
+    phase_c:
+      voltage:
+        name: "SDM630M Voltage3"
+    frequency:
+      name: "SDM630M Frequency"
+    total_power:
+      name: "SDM630M Total Power"
+      id: poww
+    import_active_energy:
+      name: "SDM630M Import Active Energy"
+    export_active_energy:
+      name: "SDM630M Export Active Energy"
+    import_reactive_energy:
+      name: "SDM630M Import Reactive Energy"
+    export_reactive_energy:
+      name: "SDM630M Export Reactive Energy"
+    update_interval: 15s
+
+  # PRZEKŁADNIK PRĄDOWY
+  - platform: ct_clamp
+    sensor: adc_sensor_1
+    name: "Prąd z przekładnika"
+    update_interval: 20s
+    filters:
+      - calibrate_linear:
+        - 0 -> 0
+        - 0.1 -> 10
+
+
+  # PRZEKŁADNIK PRĄDOWY ADC
+  - platform: adc
+    pin: GPIO36
+    id: adc_sensor_1
+    name: "Przekladni"
+
+
+  # WEJŚCIE POMIARU NAPIĘCIA DO 60V
+  - platform: adc
+    pin: GPIO34
+    id: adc_sensor_2
+    name: "Napięcie HV 1"
+    filters:
+      - multiply: 20.81
+    update_interval: 10s
+
+  # WEJŚCIE POMIARU NAPIĘCIA DO 60V
+  - platform: adc
+    pin: GPIO35
+    id: adc_sensor_3
+    name: "Napięcie HV 2"
+    filters:
+      - multiply: 20.81
+    update_interval: 10s
+
+  # WEJŚCIE POMIARU NAPIĘCIA DO 3.3V
+  - platform: adc
+    pin: GPIO39
+    id: adc_sensor_4
+    name: "Napięcie LV"
+
+  # TEMPERATURA PROCESORA
+  - platform: internal_temperature
+    name: "Temperatura CPU"
+    update_interval: 30s
+
+  # CZUJNIK POMIARU TEMPERATURY PCB 1 - USTAW KTÓRE OBWODY MAJĄ BYĆ WYŁĄCZONE W PRZYPADKU PRZEKROCZENIA TEMPERATURY
+  - platform: tmp102
+    name: "Temperatura PCB 1"
+    address: 0x48
+    id: temp_1
+    update_interval: 15s
+    on_value_range:
+        - above: 75.0
+          then:
+            - switch.turn_on: alarm_01
+        - below: 74.0
+          then:
+            - switch.turn_off: alarm_01
+
+  # CZUJNIK POMIARU TEMPERATURY PCB 1 - USTAW KTÓRE OBWODY MAJĄ BYĆ WYŁĄCZONE W PRZYPADKU PRZEKROCZENIA TEMPERATURY
+  - platform: tmp102
+    name: "Temperatura PCB 2"
+    address: 0x49
+    id: temp_2
+    update_interval: 15s
+    on_value_range:
+        - above: 75.0
+          then:
+            - switch.turn_on: alarm_01
+        - below: 74.0
+          then:
+            - switch.turn_off: alarm_01
+
+  # POMIAR CZASU OD OSTATNIEGO URUCHOMIENIA
+  - platform: uptime
+    name: Uptime Sensor
+    id: uptime_sensor_M03
+    internal: true
+    update_interval: 60s
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human_M03
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor_M03).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? to_string(days) + "d " : "") +
+                (hours ? to_string(hours) + "h " : "") +
+                (minutes ? to_string(minutes) + "m " : "") +
+                (to_string(seconds) + "s")
+              ).c_str();
+
+  # POMIAR CZASU OD OSTATNIEGO URUCHOMIENIA
+  - platform: uptime
+    name: "Uptime Sensor M03"
+    id: upt_M03
+    internal: true
+
+#KONFIGRUACJA ZEGARA CZASU RZECZYWISTEGO
+time:
+  - platform: ds1307
+    id: ds1307_time
+  - platform: homeassistant
+    id: homeassistant_time
+  - platform: sntp
+    id: sntp_time
+    timezone: Europe/Sofia
+    servers:
+     - 0.pool.ntp.org
+     - 1.pool.ntp.org
+     - 2.pool.ntp.org
+    on_time_sync:
+      then:
+        # ... and update the RTC when the synchronization was successful
+        ds1307.write_time:
+
+# KONFIGURACJA LAN LUB WIFI
+wifi:
+  ssid: "12345678"
+  password: "12345678"
+  id: eth
+
+#ethernet:
+#  type: LAN8720
+#  mdc_pin: GPIO23
+#  mdio_pin: GPIO18
+#  power_pin: GPIO16
+#  clk_mode: GPIO17_OUT
+#  phy_addr: 1
+#  id: eth
+
+  # STAŁE IP
+  #manual_ip:
+    #static_ip: 192.168.0.40
+    #gateway: 192.168.0.1
+    #subnet: 255.255.255.0
+    #dns1 : 8.8.8.8
+    #dns2 : 8.8.4.4
+
+
+# KONFIGURACJA I2C
+i2c:
+   - id: bus_a
+     sda: 5
+     scl: 15
+     scan: true
+     frequency: 400kHz
+
+# KONFIGURACJA MCP23017
+mcp23017:
+  - id: 'mcp23017_hub_2'
+    address: 0x21
+
+# KONFIGURACJA DODATKOWYCH MCP23017 ZAMIENNIE DO PCA9685
+  #- id: 'mcp23017_hub_out_1'
+  #  address: 0x20
+  - id: 'mcp23017_hub_out_2'
+    address: 0x23
+
+# KONFIGURACJA PCA9685
+# KONFIGURACJA PCA9685
+pca9685:
+  - id: 'pca9685_hub_1'
+    frequency: 500
+    address: 0x40
+  - id: 'pca9685_hub_2'
+    frequency: 500
+    address: 0x43
+
+
+# KONFIGURACJA DIODY LED ORAZ BUZZERA OD ALARMU
+switch:
+  - platform: gpio
+    pin: GPIO4
+    name: "ALARM"
+    id: alarm_01
+  - platform: gpio
+    pin: GPIO12
+    name: "STATUS LED"
+    id: status_01
+  - platform: template
+    name: "Switch "
+    id: switch1
+    restore_mode: disabled
+    lambda: |-
+      if (id(input_01).state) {
+          return true;
+        } else {
+          return false;
+        }
+    turn_on_action:
+    - delay: 30ms
+    - if:
+        condition:
+          - binary_sensor.is_off: input_01
+        then:
+          - button.press: relay1
+    turn_off_action:
+    - delay: 30ms
+    - if:
+        condition:
+          - binary_sensor.is_on: input_01
+        then:
+          - button.press: relay1
+
+
+# KONFIGURACJA WEJŚĆ
+binary_sensor:
+  - platform: gpio
+    name: "INPUT-01"
+    id: input_01
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 7
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+
+#KONFIGURACJA MCP23017 ZAMIENNIE DO PCS9685
+button:
+  - platform: template
+    name: "Relay 1"
+    id: relay1
+    on_press:
+      then:
+      - output.set_level:
+          id: pwm01
+          level: 100%
+      - delay: 20ms
+      - output.turn_off: pwm01
+
+
+output:
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 4
+    id: pwm01
+
+
+# AKTYWACJA WEB SERWERA
+web_server:
+  port: 80
+
+# USTAWIENIA ELEMENTÓW TEKSTOWYCH
+text_sensor:
+  - platform: template
+    name: "ESP32-M03 Uptime"
+    id: uptime_human_M03
+    icon: mdi:clock-start
+  - platform: template
+    name: "IP"
+    id: ip_address
+    entity_category: diagnostic
+    icon: "mdi:ip-network"
+    lambda: return { id(eth).get_ip_address().str() };
+    update_interval: 10s
+
+#USTAWENIA CZCIONEK
+font:
+- file: 'arial.ttf'
+  id: font1
+  size: 12
+
+- file: 'materialdesignicons-webfont.ttf'
+  id: materialdesignicons
+  size: 15
+  glyphs: [
+      "\U000F0317", # lan
+      "\U000F04A2", # signal
+      "\U000F05A9", # wifi
+      "\U000F048B", # server
+      "\U000F0FA9", # clock
+      "\U000F050F" # thermometer
+      ]
+
+# USTAWIENIA EKRANU
+display:
+  - platform: ssd1306_i2c
+    model: "SSD1306_128X64"
+    lambda: |-
+      int seconds = round(id(upt_M03).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600);
+      int hours = seconds / 3600;
+      it.print(0, 0, id(materialdesignicons), TextAlign::LEFT, "\U000F0317");
+      it.printf(18, 1,id(font1), "%s", id(ip_address).state.c_str());
+      it.print(0, 16, id(materialdesignicons), TextAlign::LEFT, "\U000F0FA9");
+      it.printf(18,17,id(font1),"%d dni, %02d godzin",days,hours);
+      it.print(0, 32, id(materialdesignicons), TextAlign::LEFT, "\U000F048B");
+      it.printf(18, 33, id(font1), "SM-LITE-1624D"); 
+      it.print(0, 48, id(materialdesignicons), TextAlign::LEFT, "\U000F050F");
+      it.printf(18, 49, id(font1), "%.1f°, %.1f°", id(temp_1).state, id(temp_2).state); 
+      
