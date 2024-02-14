@@ -1,7 +1,7 @@
 # NAZWA STEROWNIKA
 esphome:
-  name: sb-1624m-lite-wifi
-  friendly_name: SB 16/24M LITE WIFI
+  name: sm-lite-1624m
+  friendly_name: sm-lite-1624m
   on_boot:
     then:
       # read the RTC time once when the system boots
@@ -82,17 +82,31 @@ sensor:
       name: "SDM630M Export Reactive Energy"
     update_interval: 15s
 
+  #CZUJNIK NA I2C
+  - platform: bme280
+    temperature:
+      name: "Zewętrzne I2C temperatura"
+    humidity:
+      name: "Zewnętrzne I2C wilgotność"
+    address: 0x76
+    update_interval: 15s
+
   # PRZEKŁADNIK PRĄDOWY
   - platform: ct_clamp
     sensor: adc_sensor_1
     name: "Prąd z przekładnika"
-    update_interval: 2s
+    update_interval: 20s
+    filters:
+      - calibrate_linear:
+        - 0 -> 0
+        - 0.1 -> 10
 
   # PRZEKŁADNIK PRĄDOWY ADC
   - platform: adc
     pin: GPIO36
     id: adc_sensor_1
-    name: "Napięcie przekładnika"
+    name: "Przekladni"
+
 
   # WEJŚCIE POMIARU NAPIĘCIA DO 60V
   - platform: adc
@@ -128,9 +142,9 @@ sensor:
     name: "Temperatura PCB 1"
     address: 0x48
     id: temp_1
-    update_interval: 5s
+    update_interval: 15s
     on_value_range:
-        - above: 75.0
+        - above: 72.0
           then:
             - light.turn_off: LED_RGB1
             - light.turn_off: LED_RGB2
@@ -157,7 +171,7 @@ sensor:
             - light.turn_off: LED_RGB23
             - light.turn_off: LED_RGB24
             - switch.turn_on: alarm_01
-        - below: 74.0
+        - below: 70.0
           then:
             - switch.turn_off: alarm_01
 
@@ -166,9 +180,9 @@ sensor:
     name: "Temperatura PCB 2"
     address: 0x49
     id: temp_2
-    update_interval: 5s
+    update_interval: 15s
     on_value_range:
-        - above: 75.0
+        - above: 72.0
           then:
             - light.turn_off: LED_RGB1
             - light.turn_off: LED_RGB2
@@ -195,7 +209,7 @@ sensor:
             - light.turn_off: LED_RGB23
             - light.turn_off: LED_RGB24
             - switch.turn_on: alarm_01
-        - below: 74.0
+        - below: 70.0
           then:
             - switch.turn_off: alarm_01
 
@@ -230,6 +244,10 @@ sensor:
     id: upt_M03
     internal: true
 
+# KOFNIFGURACJA 1WIRE
+dallas:
+  - pin: GPIO32
+
 #KONFIGRUACJA ZEGARA CZASU RZECZYWISTEGO
 time:
   - platform: ds1307
@@ -249,16 +267,16 @@ time:
         ds1307.write_time:
 
 # KONFIGURACJA LAN LUB WIFI
-#wifi:
-#  ssid: "12345678"
-#  password: "12345678"
+#ifi:
+  #ssid: "12345678"
+  #password: "12345678"
+  #id: eth
 
 ethernet:
   type: LAN8720
   mdc_pin: GPIO23
   mdio_pin: GPIO18
-  #clk_mode: GPIO0_IN
-  #power_pin: GPIO16
+  power_pin: GPIO16
   clk_mode: GPIO17_OUT
   phy_addr: 1
   id: eth
@@ -285,6 +303,13 @@ mcp23017:
   - id: 'mcp23017_hub_2'
     address: 0x21
 
+# KONFIGURACJA DODATKOWYCH MCP23017 ZAMIENNIE DO PCA9685
+  #- id: 'mcp23017_hub_out_1'
+  #  address: 0x20
+  #- id: 'mcp23017_hub_out_2'
+  #  address: 0x23
+
+
 # KONFIGURACJA DIODY LED ORAZ BUZZERA OD ALARMU
 switch:
   - platform: gpio
@@ -299,10 +324,10 @@ switch:
 # KONFIGURACJA PCA9685
 pca9685:
   - id: 'pca9685_hub_1'
-    frequency: 500
+    frequency: 1000
     address: 0x40
   - id: 'pca9685_hub_2'
-    frequency: 500
+    frequency: 1000
     address: 0x43
 
 # KONFIGURACJA WEJŚĆ
@@ -874,10 +899,10 @@ display:
       seconds = seconds % (24 * 3600);
       int hours = seconds / 3600;
       it.print(0, 0, id(materialdesignicons), TextAlign::LEFT, "\U000F0317");
-      it.printf(18, 1,id(font1), "IP %s", id(ip_address).state.c_str());
+      it.printf(18, 1,id(font1), "%s", id(ip_address).state.c_str());
       it.print(0, 16, id(materialdesignicons), TextAlign::LEFT, "\U000F0FA9");
       it.printf(18,17,id(font1),"%d dni, %02d godzin",days,hours);
       it.print(0, 32, id(materialdesignicons), TextAlign::LEFT, "\U000F048B");
-      it.printf(18, 33, id(font1), "SmartBOB L1624"); 
+      it.printf(18, 33, id(font1), "SM-LITE-1624D"); 
       it.print(0, 48, id(materialdesignicons), TextAlign::LEFT, "\U000F050F");
       it.printf(18, 49, id(font1), "%.1f°, %.1f°", id(temp_1).state, id(temp_2).state); 
