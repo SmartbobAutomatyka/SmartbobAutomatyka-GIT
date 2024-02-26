@@ -51,15 +51,17 @@
 Supla::Control::ExtPCA9685 *pca1 = nullptr;
 Supla::Control::ExtPCA9685 *pca2 = nullptr;
 Supla::Control::ExpanderMCP23017 *mcp1 = nullptr;
-
-
-
+/*
+//OLED
+//#include <uptime.h> //YiannisBourkelis Uptime-Library
 unsigned long lastMillis;
 #include "DEV_OLED.h"
+//OLED
+*/
 #include <supla/storage/eeprom.h>
 Supla::Eeprom eeprom;
- #include <supla/storage/fram_spi.h>
- Supla::FramSpi fram(STORAGE_OFFSET);
+ //#include <supla/storage/fram_spi.h>
+ //Supla::FramSpi fram(STORAGE_OFFSET);
 //WLACZENIE WIFI
 //Supla::ESPWifi wifi;
 Supla::LittleFsConfig configSupla;
@@ -81,6 +83,17 @@ Serial.begin(115200);
 Wire.begin(I2C_SDA, I2C_SCL);
 Wire.setClock(400000);
 
+/*
+ if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;); // Don't proceed, loop forever
+  }
+*/
+  // Replace the falowing GUID with value that you can retrieve from https://www.supla.org/arduino/get-guid
+ // char GUID[SUPLA_GUID_SIZE] = {0x62,0xAA,0xDB,0x5B,0x7C,0xC7,0x6D,0x03,0x86,0x7E,0xD8,0x2E,0x04,0xEE,0x24,0xE8};
+
+  // Replace the following AUTHKEY with value that you can retrieve from: https://www.supla.org/arduino/get-authkey
+  //char AUTHKEY[SUPLA_AUTHKEY_SIZE] = {0x72,0x17,0x5F,0x52,0x3E,0x53,0xB2,0x69,0x16,0x3C,0xFA,0x35,0x0F,0xD6,0xCA,0x31};
 
   /*
      Having your device already registered at cloud.supla.org,
@@ -94,9 +107,9 @@ Wire.setClock(400000);
   mcp1 = new Supla::Control::ExpanderMCP23017(&Wire,0x21);
   pca1->setPWMFrequency(500);
   pca2->setPWMFrequency(500);
-  auto sensor7 = new Supla::Sensor::Binary(mcp1, 15, false,true); // PIN 15 kontaktron - czujnik otwarcia drzwi
-  auto sensor1 = new Supla::Sensor::DHT(DHTPIN, DHTTYPE);//DHT czujnik temperatury
- //relays 0-1 właczanie 8 kanałów
+  auto sensor7 = new Supla::Sensor::Binary(mcp1, 15, false,true); // 0 - 15
+  auto sensor1 = new Supla::Sensor::DHT(DHTPIN, DHTTYPE);
+ //relays
  auto relay0 = new Supla::Control::Relay(pca1, 0, true);
  auto relay1 = new Supla::Control::Relay(pca1, 1, true);
  auto relay2 = new Supla::Control::Relay(pca1, 2, true);
@@ -105,7 +118,7 @@ Wire.setClock(400000);
  auto relay5 = new Supla::Control::Relay(pca1, 5, true);
  auto relay6 = new Supla::Control::Relay(pca1, 6, true);
  auto relay7 = new Supla::Control::Relay(pca1, 7, true);
- //butons 15 szt
+//butons
  auto button0 = new Supla::Control::Button(mcp1, 0, false,true);
  auto button1 = new Supla::Control::Button(mcp1, 1, false,true);
  auto button2 = new Supla::Control::Button(mcp1, 2, false,true);
@@ -121,23 +134,23 @@ Wire.setClock(400000);
  auto button12 = new Supla::Control::Button(mcp1, 12, false,true);
  auto button13 = new Supla::Control::Button(mcp1, 13, false,true);
  auto button14 = new Supla::Control::Button(mcp1, 14, false,true);
- // bez ostatniego który jest kontaktronem 
+ 
 
 
-  // CHANNEL - dimmer 8 kanałów mono.
-  auto led0 = new Supla::Control::DimmerLeds(pca1,8);
-  auto led1 = new Supla::Control::DimmerLeds(pca1,9);
-  auto led2 = new Supla::Control::DimmerLeds(pca1,10);
-  auto led3 = new Supla::Control::DimmerLeds(pca1,11);
-  auto led4 = new Supla::Control::DimmerLeds(pca1,12);
-  auto led5 = new Supla::Control::DimmerLeds(pca1,13);
-  auto led6 = new Supla::Control::DimmerLeds(pca1,14);
-  auto led7 = new Supla::Control::DimmerLeds(pca1,15);
-  //RGBW - na drugim PCA
-  auto rgbww = new Supla::Control::RGBWLeds(pca2,0,1,2,3);
+  // CHANNEL0 - RGB controller and dimmer (RGBW)
+ auto led0 = new Supla::Control::DimmerLeds(pca1,8);
+ auto led1 = new Supla::Control::DimmerLeds(pca1,9);
+ auto led2 = new Supla::Control::DimmerLeds(pca1,10);
+ auto led3 = new Supla::Control::DimmerLeds(pca1,11);
+ auto led4 = new Supla::Control::DimmerLeds(pca1,12);
+ auto led5 = new Supla::Control::DimmerLeds(pca1,13);
+ auto led6 = new Supla::Control::DimmerLeds(pca1,14);
+ auto led7 = new Supla::Control::DimmerLeds(pca1,15);
+  
+ auto rgbww = new Supla::Control::RGBWLeds(pca2,0,1,2,3);
   //auto rgbww1 = new Supla::Control::RGBWLeds(pca2,4,5,6,7);
 
-//Akce do przycisków do dowolnej rozbudowy. 
+//sensors 
 
 
 
@@ -196,9 +209,15 @@ Wire.setClock(400000);
   SuplaDevice.setSupla3rdPartyCACert(supla3rdCACert);
   SuplaDevice.setName("SM-LITE-1624D");
   SuplaDevice.begin();
+ // DisplayOled("Booting","","");
 }
 
 void loop() {
-
+ /* if (millis() - lastMillis >= 2*60*1000UL) 
+  {
+   lastMillis = millis();  //get ready for the next iteration
+DisplayOled(ETH.localIP().toString(),ETH.gatewayIP().toString(),ETH.macAddress());  
+  }
+*/
 SuplaDevice.iterate();
 }
