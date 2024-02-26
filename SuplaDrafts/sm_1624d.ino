@@ -92,11 +92,11 @@ Wire.setClock(400000);
   pca1 = new Supla::Control::ExtPCA9685(0x40);
   pca2 = new Supla::Control::ExtPCA9685(0x43);
   mcp1 = new Supla::Control::ExpanderMCP23017(&Wire,0x21);
-pca1->setPWMFrequency(500);
-pca2->setPWMFrequency(500);
- auto sensor7 = new Supla::Sensor::Binary(mcp1, 15, false,true); // 0 - 15
-auto sensor1 = new Supla::Sensor::DHT(DHTPIN, DHTTYPE);
- //relays
+  pca1->setPWMFrequency(500);
+  pca2->setPWMFrequency(500);
+  auto sensor7 = new Supla::Sensor::Binary(mcp1, 15, false,true); // PIN 15 kontaktron - czujnik otwarcia drzwi
+  auto sensor1 = new Supla::Sensor::DHT(DHTPIN, DHTTYPE);//DHT czujnik temperatury
+ //relays 0-1 właczanie 8 kanałów
  auto relay0 = new Supla::Control::Relay(pca1, 0, true);
  auto relay1 = new Supla::Control::Relay(pca1, 1, true);
  auto relay2 = new Supla::Control::Relay(pca1, 2, true);
@@ -105,7 +105,7 @@ auto sensor1 = new Supla::Sensor::DHT(DHTPIN, DHTTYPE);
  auto relay5 = new Supla::Control::Relay(pca1, 5, true);
  auto relay6 = new Supla::Control::Relay(pca1, 6, true);
  auto relay7 = new Supla::Control::Relay(pca1, 7, true);
-//butons
+ //butons 15 szt
  auto button0 = new Supla::Control::Button(mcp1, 0, false,true);
  auto button1 = new Supla::Control::Button(mcp1, 1, false,true);
  auto button2 = new Supla::Control::Button(mcp1, 2, false,true);
@@ -121,10 +121,10 @@ auto sensor1 = new Supla::Sensor::DHT(DHTPIN, DHTTYPE);
  auto button12 = new Supla::Control::Button(mcp1, 12, false,true);
  auto button13 = new Supla::Control::Button(mcp1, 13, false,true);
  auto button14 = new Supla::Control::Button(mcp1, 14, false,true);
- 
+ // bez ostatniego który jest kontaktronem 
 
 
-  // CHANNEL0 - RGB controller and dimmer (RGBW)
+  // CHANNEL - dimmer 8 kanałów mono.
   auto led0 = new Supla::Control::DimmerLeds(pca1,8);
   auto led1 = new Supla::Control::DimmerLeds(pca1,9);
   auto led2 = new Supla::Control::DimmerLeds(pca1,10);
@@ -133,11 +133,11 @@ auto sensor1 = new Supla::Sensor::DHT(DHTPIN, DHTTYPE);
   auto led5 = new Supla::Control::DimmerLeds(pca1,13);
   auto led6 = new Supla::Control::DimmerLeds(pca1,14);
   auto led7 = new Supla::Control::DimmerLeds(pca1,15);
-  
+  //RGBW - na drugim PCA
   auto rgbww = new Supla::Control::RGBWLeds(pca2,0,1,2,3);
   //auto rgbww1 = new Supla::Control::RGBWLeds(pca2,4,5,6,7);
 
-//sensors 
+//Akce do przycisków do dowolnej rozbudowy. 
 
 
 
