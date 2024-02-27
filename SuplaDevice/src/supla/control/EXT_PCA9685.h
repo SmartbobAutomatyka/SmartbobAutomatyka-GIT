@@ -20,7 +20,7 @@
 #define SRC_SUPLA_CONTROL_EXT_PCA9685_H_
 
 /*
-Dependency: https://github.com/RobTillaart/PCA9685_RT
+Dependency: https://github.com/NachtRaveVL/PCA9685-Arduino/
 use library manager to install it
 */
 
