@@ -1,7 +1,7 @@
 #ifndef SRC_SUPLA_CONTROL_EXT_MCP23017_H_
 #define SRC_SUPLA_CONTROL_EXT_MCP23017_H_
 /*
-Dependency: https://github.com/RobTillaart/MCP23017_RT
+Dependency: https://github.com/adafruit/Adafruit-MCP23017-Arduino-Library
 use library manager to install it
 */
 
