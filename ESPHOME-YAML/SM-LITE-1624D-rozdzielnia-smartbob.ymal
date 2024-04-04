@@ -1,0 +1,438 @@
+esphome:
+  name: smartbob-rodzielnia-sm1624d
+  friendly_name: smartbob-rodzielnia-sm1624D
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# LOGOWANIE
+logger:
+  level: VERBOSE
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "wabpdO40F/uVkpg/cDR3saLs0/wDjFCKJgafqWdTeKM="
+
+ota:
+  password: "dc9540aed0de75c26e857897ac38f47e"
+
+# KONFIGURACJA LAN
+ethernet:
+  id: eth
+  type: LAN8720
+  mdc_pin: GPIO23
+  mdio_pin: GPIO18
+  clk_mode: GPIO17_OUT
+  phy_addr: 1
+
+  # STAŁE IP
+  manual_ip:
+   static_ip: 192.168.0.25
+   gateway: 192.168.0.1
+   subnet: 255.255.255.0
+   dns1: 8.8.8.8
+
+# KONFIGURACJA I2C
+i2c:
+   - id: bus_a
+     sda: 5
+     scl: 15
+     scan: true
+     frequency: 400kHz
+
+# KONFIGURACJA WYJŚĆ ON/OFF
+switch:
+  - platform: gpio
+    pin: GPIO4
+    name: "ALARM"
+    id: alarm_01
+  - platform: gpio
+    pin: GPIO12
+    name: "STATUS LED"
+    id: status_01
+  #- platform: template
+  #  name: "Lampa korytarz"
+  #  id: relay1
+  #  optimistic: true
+  #  internal: true
+  #  turn_on_action:
+  #    then:
+  #      output.set_level:
+  #          id: pwm09
+  #          level: 100%
+  #  turn_off_action:
+  #    then:
+  #     output.turn_off: pwm09
+
+# KONFIGURACJA MCP23017
+mcp23017:
+  - id: 'mcp23017_hub'
+    address: 0x21
+
+# KONFIGURACJA PCA9685
+pca9685:
+  - id: 'pca9685_hub_1'
+    frequency: 1000
+    address: 0x40
+  - id: 'pca9685_hub_2'
+    frequency: 1000
+    address: 0x43
+
+# KONFGURACJA WYJSC Z PCA9685
+output:
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 4
+    id: pwm01
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 5
+    id: pwm02
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 6
+    id: pwm03
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 7
+    id: pwm04
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 8
+    id: pwm05
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 9
+    id: pwm06
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 10
+    id: pwm07
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 11
+    id: pwm08
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 12
+    id: pwm09
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 13
+    id: pwm10
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 14
+    id: pwm11
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 15
+    id: pwm12
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 4
+    id: pwm13
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 5
+    id: pwm14
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 6
+    id: pwm15
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 7
+    id: pwm16
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 0
+    id: pwm17
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 1
+    id: pwm18
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 2
+    id: pwm19
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 3
+    id: pwm20
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 0
+    id: pwm21
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 1
+    id: pwm22
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 2
+    id: pwm23
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 3
+    id: pwm24
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 9
+    id: pwm25
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 10
+    id: pwm26
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 11
+    id: pwm27
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 12
+    id: pwm28
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 13
+    id: pwm29
+
+# KONFIGURACJA RODZAJU OSWIETLENIA LED
+light:
+  - platform: binary
+    name: "Lampa korytarz"
+    id: LAMPA1
+    output: pwm09
+
+  - platform: rgbw
+    name: "Ledy salon"
+    id: LED_RGB1
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    red: pwm06
+    green: pwm07
+    blue: pwm08
+    white: pwm05
+
+  - platform: rgbw
+    name: "Ledy korytarz"
+    id: LED_RGB2
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    red: pwm01
+    green: pwm03
+    blue: pwm02
+    white: pwm04
+
+# KONFIGURACJA WEJŚĆ MCP23017
+binary_sensor:
+  - platform: gpio
+    name: "Czujnik dymu"
+    id: czyjnik_dymu_korytarz
+    pin:
+      mcp23xxx: mcp23017_hub
+      number: 2
+      mode:
+        input: true
+        pullup: false
+      inverted: false
+  - platform: gpio
+    name: "Czujnik ruchu"
+    id: czujnik_ruchu_korytarz
+    pin:
+      mcp23xxx: mcp23017_hub
+      number: 0
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+  - platform: gpio
+    name: "Czyjnik drzwi"
+    id: czujnik_drzwi_korytarz
+    pin:
+      mcp23xxx: mcp23017_hub
+      number: 1
+      mode:
+        input: true
+        pullup: false
+      inverted: false
+  - platform: gpio
+    name: "Przełącznik od światła"
+    id: przelacznik_swiatlo_korytarz_drzwi
+    pin:
+      mcp23xxx: mcp23017_hub
+      number: 7
+      mode:
+        input: true
+        pullup: false
+      inverted: False
+    on_press:
+      then:
+        - light.toggle: LAMPA1
+        - delay: 0.5s
+        - if:
+            condition:
+              light.is_off: LAMPA1
+            then:
+              light.turn_off:
+                id: LED_RGB1
+            else:
+              light.turn_on:
+                id: LED_RGB1
+
+# KONFIGURACJA CZUJNIKÓW I PERYFERIÓW
+sensor:
+  # PRZEKŁADNIK PRĄDOWY
+  - platform: ct_clamp
+    sensor: adc_sensor_1
+    id: ct_clamp_1
+    name: "Prąd z przekładnika"
+    update_interval: 5s
+    filters:
+      - calibrate_linear:
+        - 0.00 -> 0.0
+        - 0.15 -> 7.9
+
+  # PRZEKŁADNIK PRĄDOWY ADC
+  - platform: adc
+    pin: GPIO36
+    id: adc_sensor_1
+    attenuation: 11db
+
+  # CZUJNIK POMIARU TEMPERATURY PCB 1
+  - platform: tmp102
+    name: "Temperatura PCB 1"
+    address: 0x48
+    id: temp_1
+    update_interval: 15s
+    on_value_range:
+        - above: 72.0
+          then:
+            - light.turn_off: LED_RGB1
+            - light.turn_off: LED_RGB2
+            - switch.turn_on: alarm_01
+        - below: 70.0
+          then:
+            - switch.turn_off: alarm_01
+
+  # CZUJNIK POMIARU TEMPERATURY PCB 2
+  - platform: tmp102
+    name: "Temperatura PCB 2"
+    address: 0x49
+    id: temp_2
+    update_interval: 15s
+    on_value_range:
+        - above: 72.0
+          then:
+            - light.turn_off: LED_RGB1
+            - light.turn_off: LED_RGB2
+            - switch.turn_on: alarm_01
+        - below: 70.0
+          then:
+            - switch.turn_off: alarm_01
+
+  # POMIAR CZASU OD OSTATNIEGO URUCHOMIENIA
+  - platform: uptime
+    name: Uptime Sensor
+    id: uptime_sensor_M03
+    internal: true
+    update_interval: 60s
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human_M03
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor_M03).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? to_string(days) + "d " : "") +
+                (hours ? to_string(hours) + "h " : "") +
+                (minutes ? to_string(minutes) + "m " : "") +
+                (to_string(seconds) + "s")
+              ).c_str();
+
+  # POMIAR CZASU OD OSTATNIEGO URUCHOMIENIA
+  - platform: uptime
+    name: "Czas od uruchomienia"
+    id: upt_M03
+    internal: true
+
+#KONFIGRUACJA ZEGARA CZASU RZECZYWISTEGO
+time:
+  - platform: ds1307
+    id: ds1307_time
+  - platform: homeassistant
+    id: homeassistant_time
+  - platform: sntp
+    id: sntp_time
+    timezone: Europe/Warsaw
+    servers:
+     - 0.pool.ntp.org
+     - 1.pool.ntp.org
+     - 2.pool.ntp.org
+    on_time_sync:
+      then:
+        # ... and update the RTC when the synchronization was successful
+        ds1307.write_time:
+
+# AKTYWACJA WEB SERWERA
+web_server:
+  port: 80
+
+# USTAWIENIA ELEMENTÓW TEKSTOWYCH
+text_sensor:
+  - platform: template
+    name: "Czas od uruchomienia"
+    id: uptime_human_M03
+    icon: mdi:clock-start
+  - platform: template
+    name: "IP"
+    id: ip_address
+    entity_category: diagnostic
+    icon: "mdi:ip-network"
+    lambda: return { id(eth).get_ip_address().str() };
+    update_interval: 10s
+
+#USTAWENIA CZCIONEK
+font:
+- file: 'arial.ttf'
+  id: font1
+  size: 12
+
+- file: 'materialdesignicons-webfont.ttf'
+  id: materialdesignicons
+  size: 15
+  glyphs: [
+      "\U000F0317", # lan
+      "\U000F04A2", # signal
+      "\U000F05A9", # wifi
+      "\U000F048B", # server
+      "\U000F0FA9", # clock
+      "\U000F050F" # thermometer
+      ]
+
+# USTAWIENIA EKRANU
+display:
+  - platform: ssd1306_i2c
+    model: "SSD1306_128X64"
+    lambda: |-
+      int seconds = round(id(upt_M03).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600);
+      int hours = seconds / 3600;
+      it.print(0, 0, id(materialdesignicons), TextAlign::LEFT, "\U000F0317");
+      it.printf(18, 1,id(font1), "%s", id(ip_address).state.c_str());
+      it.print(0, 16, id(materialdesignicons), TextAlign::LEFT, "\U000F0FA9");
+      it.printf(18,17,id(font1),"%d dni, %02d godzin",days,hours);
+      it.print(0, 32, id(materialdesignicons), TextAlign::LEFT, "\U000F048B");
+      it.printf(18, 33, id(font1), "SM-LITE-1616R");
+      it.print(0, 48, id(materialdesignicons), TextAlign::LEFT, "\U000F050F");
+      it.printf(18, 49, id(font1), "T %.0f/%.0f°, P %.1fA", id(temp_1).state, id(temp_2).state, id(ct_clamp_1).state);
