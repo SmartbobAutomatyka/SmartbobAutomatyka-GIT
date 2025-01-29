@@ -1,0 +1,1723 @@
+esphome:
+  name: sm-pro-3248d-michal
+  friendly_name: sm-pro-3248d-michal
+  on_boot:
+    then:
+      # read the RTC time once when the system boots
+      ds1307.read_time:
+  
+# DODATKOWE BIBLIOTEKI
+#external_components:
+#  - source:
+#      type: git
+#      url: https://github.com/esphome/esphome.git
+#      ref: 2022.12.8
+#    components: [ pca9685 ]
+
+
+# KLUCZ HA - USTAW SWÓJ
+api:
+  #encryption:
+  #  key: "98MUt/upiZL3PhfR1Ynu7ji8EHjd8tuvR8zOAS2/RDI="
+  reboot_timeout: 0s
+
+# KLUCZ OTA - USTAW SWÓJ
+ota:
+  #password: "6d492e327cf49782cc7de2da362196dc"
+
+# RODZAJ PROCESORA
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+# LOGOWANIE
+logger:
+  level: DEBUG
+  #DEBUG - dla dodatkowych informacji
+
+# AKTYWACJA WEB SERWERA
+web_server:
+  port: 80
+  js_include: "./www.js"
+  js_url: ""
+  css_include: "./webserver-v1.min.css"
+  css_url: ""
+    
+
+##########################################################
+##### SEKCJA USTAWIEŃ LAN + WIFI
+##########################################################
+
+# KONFIGURACJA LAN LUB WIFI
+#wifi:
+  #ssid: "12345678"  
+  #password: "12345678"
+  #id: eth
+
+ethernet:
+  type: LAN8720
+  mdc_pin: GPIO23
+  mdio_pin: GPIO18
+  clk_mode: GPIO17_OUT
+  phy_addr: 1
+  id: eth
+
+  # STAŁE IP
+  #manual_ip:
+    #static_ip: 192.168.0.40
+    #gateway: 192.168.0.1
+    #subnet: 255.255.255.0
+    #dns1 : 8.8.8.8
+    #dns2 : 8.8.4.4  
+
+##########################################################
+##### SEKCJA USTAWIEŃ ELEMENTÓW MAGISTRAILI
+##########################################################
+
+# KOMUNIKACJA UART-RS485
+#uart:
+#  rx_pin: 5
+#  tx_pin: 33
+#  baud_rate: 2400
+#  stop_bits: 1
+
+# KOMUNIKACJA CAN
+#canbus:
+#  - platform: esp32_can
+#    tx_pin: GPIO4
+#    rx_pin: GPIO14
+#    can_id: 4
+#    bit_rate: 50kbps
+
+# KONFIGURACJA I2C 
+i2c:
+   - id: bus_a
+     sda: 13
+     scl: 15
+     scan: true
+     frequency: 100kHz
+
+# KONFIGURACJA MCP23017
+mcp23017:
+  - id: 'mcp23017_hub_2_in' 
+    address: 0x21
+  - id: 'mcp23017_hub_1_in' 
+    address: 0x20
+
+# KONFIGURACJA PCA9685
+pca9685:
+  - id: 'pca9685_hub_1_out' 
+    frequency: 1000
+    address: 0x41
+  - id: 'pca9685_hub_2_out' 
+    frequency: 1000
+    address: 0x42
+  - id: 'pca9685_hub_3_out' 
+    frequency: 1000
+    address: 0x40
+
+# KONFIGURACJA DAC - WYJSCIA ANALOGOWE
+#mcp4728:
+#  - id: dac_output
+
+# KOFNIFGURACJA 1WIRE
+#dallas:
+#  - pin: GPIO32
+
+# KONFIGURACJA ADC
+#ads1115:
+#  - address: 0x48
+
+#KONFIGRUACJA ZEGARA CZASU RZECZYWISTEGO
+time:
+  - platform: ds1307
+    id: ds1307_time
+  - platform: homeassistant
+    id: homeassistant_time
+  - platform: sntp
+    id: sntp_time
+    timezone: Europe/Sofia
+    servers:
+     - 0.pool.ntp.org
+     - 1.pool.ntp.org
+     - 2.pool.ntp.org
+    on_time_sync:
+      then:
+        # ... and update the RTC when the synchronization was successful
+        ds1307.write_time:
+
+##########################################################
+##### SEKCJA CZUJNIKÓW
+##########################################################
+
+# KONFIGURACJA CZUJNIKÓW I PERYFERIÓW
+sensor:
+  # LICZNIK ENRGII SDM
+  #- platform: sdm_meter
+  #  phase_a:
+  #    current:
+  #      name: "SDM630M Current "
+  #    voltage:
+  #      name: "SDM630M Voltage1"
+  #    active_power:
+  #      name: "SDM630M Power "
+  #    power_factor:
+  #      name: "SDM630M Power Factor"
+  #    apparent_power:
+  #      name: "SDM630M Apparent Power"
+  #    reactive_power:
+  #      name: "SDM630M Reactive Power"
+  #    phase_angle:
+  #      name: "SDM630M Phase Angle"
+  #  phase_b:
+  #    voltage:
+  #      name: "SDM630M Voltage2"
+  #  phase_c:
+  #    voltage:
+  #      name: "SDM630M Voltage3"
+  #  frequency:
+  #    name: "SDM630M Frequency"
+  #  total_power:
+  #    name: "SDM630M Total Power"
+  #    id: poww
+  #  import_active_energy:
+  #    name: "SDM630M Import Active Energy"
+  #  export_active_energy:
+  #    name: "SDM630M Export Active Energy"
+  #  import_reactive_energy:
+  #    name: "SDM630M Import Reactive Energy"
+  #  export_reactive_energy:
+  #    name: "SDM630M Export Reactive Energy"
+  #  update_interval: 15s
+
+  #CZUJNIK NA I2C
+  #- platform: bme280_i2c
+  #  temperature:
+  #    name: "Zewętrzne I2C temperatura"
+  #  humidity:
+  #    name: "Zewnętrzne I2C wilgotność"
+  #  address: 0x76
+  #  update_interval: 15s
+
+  # WEJSĆIE ADC
+  #- platform: ads1115
+  #  multiplexer: 'A0_GND'
+  #  gain: 6.144
+  # name: "ADS1115 Channel A0-GND"
+
+  #- platform: ads1115
+  #  multiplexer: 'A1_GND'
+  #  gain: 6.144
+  #  name: "ADS1115 Channel A1-GND"
+
+  #- platform: ads1115
+  #  multiplexer: 'A2_GND'
+  #  gain: 6.144
+  #  name: "ADS1115 Channel A2-GND"
+
+  # PRZEKŁADNIK PRĄDOWY    
+  - platform: ct_clamp
+    sensor: adc_sensor_1
+    name: "Prąd z przekładnika 1"
+    update_interval: 4s
+    sample_duration: 800ms
+    filters:
+      - calibrate_linear:
+        - 0 -> 0
+        - 0.10 -> 4.85
+        
+  # PRZEKŁADNIK PRĄDOWY ADC
+  - platform: adc
+    pin: GPIO34
+    id: adc_sensor_1
+    attenuation: 11db
+  
+  #PRZEKŁADNIK PRĄDOWY    
+  - platform: ct_clamp
+    sensor: adc_sensor_2
+    name: "Prąd z przekładnika 2"
+    update_interval: 4s
+    sample_duration: 800ms
+    filters:
+      - calibrate_linear:
+        - 0 -> 0
+        - 0.10 -> 4.85
+
+  # PRZEKŁADNIK PRĄDOWY ADC
+  - platform: adc
+    pin: GPIO35
+    id: adc_sensor_2
+    attenuation: 11db
+
+  # PRZEKŁADNIK PRĄDOWY    
+  #- platform: ct_clamp
+  #  sensor: adc_sensor_3
+  #  name: "Prąd z przekładnika 3"
+  #  update_interval: 4s
+  # sample_duration: 800ms
+  #  filters:
+  #    - calibrate_linear:
+  #      - 0 -> 0
+  #      - 0.10 -> 4.85
+
+  # PRZEKŁADNIK PRĄDOWY ADC
+  #- platform: adc
+  #  pin: GPIO39
+  #  id: adc_sensor_3
+  #  attenuation: 11db
+
+    # CZUJNIK POMIARU TEMPERATURY PCB 1 - USTAW KTÓRE OBWODY MAJĄ BYĆ WYŁĄCZONE W PRZYPADKU PRZEKROCZENIA TEMPERATURY
+  - platform: tmp102
+    name: "Temperatura PCB 1"
+    address: 0x4A
+    id: temp_1
+    update_interval: 15s
+
+  # CZUJNIK POMIARU TEMPERATURY PCB 1 - USTAW KTÓRE OBWODY MAJĄ BYĆ WYŁĄCZONE W PRZYPADKU PRZEKROCZENIA TEMPERATURY
+  - platform: tmp102
+    name: "Temperatura PCB 2"
+    address: 0x4B
+    id: temp_2
+    update_interval: 15s
+
+  # POMIAR CZASU OD OSTATNIEGO URUCHOMIENIA
+  - platform: uptime
+    name: Uptime Sensor
+    id: uptime_sensor_M03
+    internal: true
+    update_interval: 60s
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human_M03
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor_M03).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? to_string(days) + "d " : "") +
+                (hours ? to_string(hours) + "h " : "") +
+                (minutes ? to_string(minutes) + "m " : "") +
+                (to_string(seconds) + "s")
+              ).c_str();
+  
+  # POMIAR CZASU OD OSTATNIEGO URUCHOMIENIA
+  - platform: uptime
+    name: "Uptime Sensor M03"
+    id: upt_M03
+    internal: true
+
+##########################################################
+##### SEKCJA FIZYCZNEJ ADRESACJI GDZIE JEST JAKI PIN WEJŚCIA
+##########################################################
+
+# KONFIGURACJA WEJŚĆ NA EKSPANERZE MCP
+binary_sensor:
+  
+  ### MCP 1
+  - platform: gpio
+    name: "Led przedpokuj"
+    id: input_1
+    pin:
+      mcp23xxx: mcp23017_hub_1_in
+      number: 8
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 20ms
+    
+  
+  - platform: gpio
+    name: "Kuchnia wolne 1"
+    id: input_2
+    pin:
+      mcp23xxx: mcp23017_hub_1_in
+      number: 9
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 20ms
+    
+
+  - platform: gpio
+    name: "Przełącznik led rgbw sypialnia"
+    id: input_3
+    pin:
+      mcp23xxx: mcp23017_hub_1_in
+      number: 10
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 20ms
+    on_press:
+      then:
+        - logger.log: "Short input 3"
+        - light.toggle: LED_RGBW3_BED_ROOM
+    on_multi_click:
+      - timing:
+          - ON for at least 2s
+        then:
+          - logger.log: "Long input 3"
+          - light.turn_on:
+              id: LED_RGBW3_BED_ROOM
+              brightness: 100%
+              red: 100%
+              green: 100%
+              blue: 100%
+              white: 100%
+          - delay: 1s
+          - while:
+              condition:
+                binary_sensor.is_on: input_3
+              then:
+                - light.dim_relative:
+                    id: LED_RGBW3_BED_ROOM
+                    relative_brightness: -5%
+                    transition_length: 0.1s
+                - delay: 0.1s
+
+
+  - platform: gpio
+    name: "Przełącznik kuchnia"
+    id: input_4
+    pin:
+      mcp23xxx: mcp23017_hub_1_in
+      number: 11
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 20ms
+    on_press:
+      then:
+        - logger.log: "Short input 13"
+        - switch.toggle: relay12
+    
+
+
+  - platform: gpio
+    name: "Przełącznik korytarz od kuchni"
+    id: input_5
+    pin:
+      mcp23xxx: mcp23017_hub_1_in
+      number: 12
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 20ms
+    on_press:
+      then:
+        - logger.log: "Short input 30"
+        - switch.toggle: relay13
+    
+  
+  - platform: gpio
+    name: "Przełacznik lampa łazienka w łazience"
+    id: input_6
+    pin:
+      mcp23xxx: mcp23017_hub_1_in
+      number: 13
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 20ms
+    on_press:
+      then:
+        - logger.log: "Short input 13"
+        - switch.toggle: relay15
+
+  - platform: gpio
+    name: "Przełącznik led łazienka 2"
+    id: input_7
+    pin:
+      mcp23xxx: mcp23017_hub_1_in
+      number: 14
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Short input 4"
+        - light.toggle: LED_WHITE_1
+    on_multi_click:
+      - timing:
+          - ON for at least 2s
+        then:
+          - logger.log: "Long input 4"
+          - light.turn_on:
+              id: LED_WHITE_1
+              brightness: 100%
+          - delay: 1s
+          - while:
+              condition:
+                binary_sensor.is_on: input_7
+              then:
+                - light.dim_relative:
+                    id: LED_WHITE_1
+                    relative_brightness: -5%
+                    transition_length: 0.1s
+                - delay: 0.1s
+    
+  - platform: gpio
+    name: "Przełacznik led łazienka 1"
+    id: input_8
+    pin:
+      mcp23xxx: mcp23017_hub_1_in
+      number: 15
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 20ms
+    on_press:
+      then:
+        - logger.log: "Short input 4"
+        - light.toggle: LED_WHITE_1
+    on_multi_click:
+      - timing:
+          - ON for at least 2s
+        then:
+          - logger.log: "Long input 4"
+          - light.turn_on:
+              id: LED_WHITE_1
+              brightness: 100%
+          - delay: 1s
+          - while:
+              condition:
+                binary_sensor.is_on: input_8
+              then:
+                - light.dim_relative:
+                    id: LED_WHITE_1
+                    relative_brightness: -5%
+                    transition_length: 0.1s
+                - delay: 0.1s
+    
+  - platform: gpio
+    name: "Przełacznik lampa łazienka"
+    id: input_9
+    pin:
+      mcp23xxx: mcp23017_hub_1_in
+      number: 7
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 20ms
+    on_press:
+      then:
+        - logger.log: "Short input 13"
+        - switch.toggle: relay15
+    
+  - platform: gpio
+    name: "Szyno przewód 2-"
+    id: input_10
+    pin:
+      mcp23xxx: mcp23017_hub_1_in
+      number: 6
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 20ms
+    on_press:
+      then:
+        - logger.log: "Short input 13"
+        - switch.toggle: relay20
+    
+  - platform: gpio
+    name: "Szyno przewód 1-"
+    id: input_11
+    pin:
+      mcp23xxx: mcp23017_hub_1_in
+      number: 5
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 20ms
+    on_press:
+      then:
+        - logger.log: "Short input 13"
+        - switch.toggle: relay11
+    
+  - platform: gpio
+    name: "Lampa lustro salon"
+    id: input_12
+    pin:
+      mcp23xxx: mcp23017_hub_1_in
+      number: 4
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Short input 12"
+        - switch.toggle: relay18
+
+  - platform: gpio
+    name: "Przełącznik led dzieci"
+    id: input_13
+    pin:
+      mcp23xxx: mcp23017_hub_1_in
+      number: 0
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Short input 2"
+        - light.toggle: LED_RGBW4_CHILD_ROOM
+    on_multi_click:
+      - timing:
+          - ON for at least 2s
+        then:
+          - logger.log: "Long input 2"
+          - light.turn_on:
+              id: LED_RGBW4_CHILD_ROOM
+              brightness: 100%
+              red: 100%
+              green: 100%
+              blue: 100%
+              white: 100%
+          - while:
+              condition:
+                binary_sensor.is_on: input_13
+              then:
+                - light.dim_relative:
+                    id: LED_RGBW4_CHILD_ROOM
+                    relative_brightness: -5%
+                    transition_length: 0.1s
+                - delay: 0.1s
+
+  - platform: gpio
+    name: "Przełącznik szyno przewdód dzieci 1"
+    id: input_14
+    pin:
+      mcp23xxx: mcp23017_hub_1_in
+      number: 1
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Short input 14"
+        - switch.toggle: relay23
+
+  - platform: gpio
+    name: "Przełącznik szyno przewdód dzieci 2"
+    id: input_15
+    pin:
+      mcp23xxx: mcp23017_hub_1_in
+      number: 2
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Short input 15"
+        - switch.toggle: relay24
+
+  - platform: gpio
+    name: "Przełącznik szyno przewód 1"
+    id: input_16
+    pin:
+      mcp23xxx: mcp23017_hub_1_in
+      number: 3
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Short input 16"
+        - switch.toggle: relay11
+
+  ### MCP 1
+  - platform: gpio
+    name: "Przełącznik lampa lustro"
+    id: input_17
+    pin:
+      mcp23xxx: mcp23017_hub_2_in
+      number: 7
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Short input 17"
+        - switch.toggle: relay18
+  
+  - platform: gpio
+    name: "Przełącznik szyno przewód 2"
+    id: input_18
+    pin:
+      mcp23xxx: mcp23017_hub_2_in
+      number: 6
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Short input 18"
+        - switch.toggle: relay20
+    on_multi_click:
+      - timing:
+          - ON for at least 2s
+        then:
+          - logger.log: "Long input 18"
+          - switch.turn_off: relay20
+
+  - platform: gpio
+    name: "Przełącznik led salon"
+    id: input_19
+    pin:
+      mcp23xxx: mcp23017_hub_2_in
+      number: 5
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 20ms
+    on_press:
+      then:
+        - logger.log: "Short input 4"
+        - light.toggle: LED_RGBW1_LIVING_ROOM_1
+    on_multi_click:
+      - timing:
+          - ON for at least 2s
+        then:
+          - logger.log: "Long input 4"
+          - light.turn_on:
+              id: LED_RGBW1_LIVING_ROOM_1
+              brightness: 100%
+          - delay: 1s
+          - while:
+              condition:
+                binary_sensor.is_on: input_4
+              then:
+                - light.dim_relative:
+                    id: LED_RGBW1_LIVING_ROOM_1
+                    relative_brightness: -5%
+                    transition_length: 0.1s
+                - delay: 0.1s
+
+  - platform: gpio
+    name: "Przełącznik żyrandol 1"
+    id: input_20
+    pin:
+      mcp23xxx: mcp23017_hub_2_in
+      number: 4
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Short input 20"
+        - switch.toggle: relay21
+
+  - platform: gpio
+    name: "Przełącznik żyrandol 2-"
+    id: input_21
+    pin:
+      mcp23xxx: mcp23017_hub_2_in
+      number: 3
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Short input 22"
+        - switch.toggle: relay22
+  
+  - platform: gpio
+    name: "Przełacznik żyrandol 2"
+    id: input_22
+    pin:
+      mcp23xxx: mcp23017_hub_2_in
+      number: 2
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Short input 22"
+        - switch.toggle: relay22
+
+  - platform: gpio
+    name: "Przełacznik żyrandol 1"
+    id: input_23
+    pin:
+      mcp23xxx: mcp23017_hub_2_in
+      number: 1
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Short input 23"
+        - switch.toggle: relay21
+
+  - platform: gpio
+    name: "Przełącznik led RGB SALON"
+    id: input_24
+    pin:
+      mcp23xxx: mcp23017_hub_2_in
+      number: 0
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Short input 1"
+        - light.toggle: LED_RGBW1_LIVING_ROOM_1
+    on_multi_click:
+      - timing:
+          - ON for at least 2s
+        then:
+          - logger.log: "Long input 1"
+          - light.turn_on:
+              id: LED_RGBW1_LIVING_ROOM_1
+              brightness: 100%
+              red: 100%
+              green: 100%
+              blue: 100%
+              white: 100%
+          - while:
+              condition:
+                binary_sensor.is_on: input_24
+              then:
+                - light.dim_relative:
+                    id: LED_RGBW1_LIVING_ROOM_1
+                    relative_brightness: -5%
+                    transition_length: 0.1s
+                - delay: 0.1s
+
+  - platform: gpio
+    name: "Przełącznik sypialnia led"
+    id: input_25
+    pin:
+      mcp23xxx: mcp23017_hub_2_in
+      number: 8
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Short input 1"
+        - light.toggle: LED_RGBW3_BED_ROOM
+    on_multi_click:
+      - timing:
+          - ON for at least 2s
+        then:
+          - logger.log: "Long input 1"
+          - light.turn_on:
+              id: LED_RGBW3_BED_ROOM
+              brightness: 100%
+              red: 100%
+              green: 100%
+              blue: 100%
+              white: 100%
+          - while:
+              condition:
+                binary_sensor.is_on: input_25
+              then:
+                - light.dim_relative:
+                    id: LED_RGBW3_BED_ROOM
+                    relative_brightness: -5%
+                    transition_length: 0.1s
+                - delay: 0.1s
+  
+  - platform: gpio
+    name: "Przełącznik sypialnia szyno przewod"
+    id: input_26
+    pin:
+      mcp23xxx: mcp23017_hub_2_in
+      number: 9
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Short input 26"
+        - switch.toggle: relay14
+
+  - platform: gpio
+    name: "Przełącznik LED sypialnia 2"
+    id: input_27
+    pin:
+      mcp23xxx: mcp23017_hub_2_in
+      number: 10
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Short input 3"
+        - light.toggle: LED_RGBW3_BED_ROOM
+    on_multi_click:
+      - timing:
+          - ON for at least 2s
+        then:
+          - logger.log: "Long input 3"
+          - light.turn_on:
+              id: LED_RGBW3_BED_ROOM
+              brightness: 100%
+              red: 100%
+              green: 100%
+              blue: 100%
+              white: 100%
+          - delay: 1s
+          - while:
+              condition:
+                binary_sensor.is_on: input_27
+              then:
+                - light.dim_relative:
+                    id: LED_RGBW3_BED_ROOM
+                    relative_brightness: -5%
+                    transition_length: 0.1s
+                - delay: 0.1s
+
+  - platform: gpio
+    name: "Przełącznik sypialnia mała lampa"
+    id: input_28
+    pin:
+      mcp23xxx: mcp23017_hub_2_in
+      number: 11
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Short input 28"
+        - switch.toggle: relay25
+
+  - platform: gpio
+    name: "Mała lampka przy biurku"
+    id: input_29
+    pin:
+      mcp23xxx: mcp23017_hub_2_in
+      number: 12
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Short input 29"
+        - switch.toggle: relay19
+
+  - platform: gpio
+    name: "Przełącznik korytarz lampa"
+    id: input_30
+    pin:
+      mcp23xxx: mcp23017_hub_2_in
+      number: 13
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Short input 30"
+        - switch.toggle: relay13
+
+  - platform: gpio
+    name: "Przełącznik led korytarz"
+    id: input_31
+    pin:
+      mcp23xxx: mcp23017_hub_2_in
+      number: 14
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+
+  - platform: gpio
+    name: "Przełącznik grzanie mata"
+    id: input_32
+    pin:
+      mcp23xxx: mcp23017_hub_2_in
+      number: 15
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Short input 30"
+        - switch.toggle: relay9
+
+  - platform: gpio
+    id: arrow_up_01
+    name: "Strzałka góra"
+    pin:
+      number: GPIO16
+      inverted: true
+      mode: input
+
+  - platform: gpio
+    id: arrow_down_01
+    name: "Strzałka dół"
+    pin:
+      number: GPIO2
+      inverted: false
+      mode: input
+
+  - platform: gpio
+    id: button_set_01
+    name: "Gózik ustaw"
+    pin:
+      number: GPIO0
+      inverted: true
+      mode: input
+
+##########################################################
+##### SEKCJA FIZYCZNEJ ADRESACJI GDZIE JEST JAKI PIN WYJŚCIA
+##########################################################
+
+output:  
+#  - platform: mcp4728
+#    id: ac_dimmer_1
+#    mcp4728_id: dac_output
+#    channel: A
+#    vref: vdd
+#    power_down: normal
+
+#  - platform: mcp4728
+#    id: ac_dimmer_2
+#    mcp4728_id: dac_output
+#    channel: B
+#    vref: internal
+#    power_down: normal
+  
+  - platform: gpio
+    id: alarm_01
+    pin:
+      number: GPIO12
+      inverted: false
+      mode: output
+
+ # 1-8
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1_out'
+    channel: 8
+    id: pwm01
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1_out'
+    channel: 9
+    id: pwm02
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1_out'
+    channel: 10
+    id: pwm03
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1_out'
+    channel: 11
+    id: pwm04
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1_out'
+    channel: 12
+    id: pwm05
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1_out'
+    channel: 13
+    id: pwm06
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1_out'
+    channel: 14
+    id: pwm07
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1_out'
+    channel: 15
+    id: pwm08
+
+#8-16
+
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1_out'
+    channel: 7
+    id: pwm09
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1_out'
+    channel: 6
+    id: pwm10
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1_out'
+    channel: 5
+    id: pwm11
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1_out'
+    channel: 4
+    id: pwm12
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1_out'
+    channel: 3
+    id: pwm13
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1_out'
+    channel: 2
+    id: pwm14
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1_out'
+    channel: 1
+    id: pwm15
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1_out'
+    channel: 0
+    id: pwm16
+
+#17-24
+
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2_out'
+    channel: 7
+    id: pwm17
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2_out'
+    channel: 6
+    id: pwm18
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2_out'
+    channel: 5
+    id: pwm19
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2_out'
+    channel: 4
+    id: pwm20
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2_out'
+    channel: 3
+    id: pwm21
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2_out'
+    channel: 2
+    id: pwm22
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2_out'
+    channel: 1
+    id: pwm23
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2_out'
+    channel: 0
+    id: pwm24
+
+#25-32
+
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2_out'
+    channel: 8
+    id: pwm25
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2_out'
+    channel: 9
+    id: pwm26
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2_out'
+    channel: 10
+    id: pwm27
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2_out'
+    channel: 11
+    id: pwm28
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2_out'
+    channel: 12
+    id: pwm29
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2_out'
+    channel: 13
+    id: pwm30
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2_out'
+    channel: 14
+    id: pwm31
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2_out'
+    channel: 15
+    id: pwm32
+
+#33-40
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_3_out'
+    channel: 7
+    id: pwm33
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_3_out'
+    channel: 6
+    id: pwm34
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_3_out'
+    channel: 5
+    id: pwm35
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_3_out'
+    channel: 4
+    id: pwm36
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_3_out'
+    channel: 3
+    id: pwm37
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_3_out'
+    channel: 2
+    id: pwm38
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_3_out'
+    channel: 1
+    id: pwm39
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_3_out'
+    channel: 0
+    id: pwm40
+
+#41-48
+
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_3_out'
+    channel: 15
+    id: pwm41
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_3_out'
+    channel: 14
+    id: pwm42
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_3_out'
+    channel: 13
+    id: pwm43
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_3_out'
+    channel: 12
+    id: pwm44
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_3_out'
+    channel: 11
+    id: pwm45
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_3_out'
+    channel: 10
+    id: pwm46
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_3_out'
+    channel: 9
+    id: pwm47
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_3_out'
+    channel: 8
+    id: pwm48
+
+##########################################################
+##### MAPOWANIE WYJŚCIA JAKO ŚWIAŁO/PRZEKAŹNIK/ROELTA
+##########################################################
+
+# KONFIGURACJA WYJŚĆ BEZ PWM
+switch:
+  - platform: output
+    name: 'Alarm'
+    output: alarm_01 
+
+  - platform: template
+    id: relay1
+    name: 'Sterowanie zasilaczem 230V 1'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm16
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm16
+  
+  - platform: template
+    id: relay2
+    name: 'Sterowanie zasilaczem 230V 2'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm17
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm17
+
+  - platform: template
+    id: relay3
+    name: 'Sterowanie zasilaczem 230V 3'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm18
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm18
+  
+  - platform: template
+    id: relay4
+    name: 'Przekaznik 1'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm22
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm22
+  
+  - platform: template
+    id: relay5
+    name: 'Przekaznik 2'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm23
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm23
+  
+  - platform: template
+    id: relay6
+    name: 'Przekaznik 3'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm24
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm24
+
+  - platform: template
+    id: relay7
+    name: 'Przekaznik 4'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm25
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm25
+  
+  - platform: template
+    id: relay8
+    name: 'Przekaznik 5'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm26
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm26
+
+  - platform: template
+    id: relay9
+    name: 'Mata'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm27
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm27
+  
+  - platform: template
+    id: relay10
+    name: 'Stycznik'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm28
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm28
+
+  - platform: template
+    id: relay11
+    name: 'Szyno przewód 1'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm29
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm29
+  
+  - platform: template
+    id: relay12
+    name: 'Kuchnia'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm30
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm30
+  
+  - platform: template
+    id: relay13
+    name: 'Przekaźnik korytarz lampa'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm31
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm31
+  
+  - platform: template
+    id: relay14
+    name: 'Przekaznik szyno przewód sypialnia'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm32
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm32
+
+  - platform: template
+    id: relay15
+    name: 'Przekaznik łazienka '
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm33
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm33
+  
+  - platform: template
+    id: relay16
+    name: 'cos zzzz'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm34
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm34
+    
+
+  - platform: template
+    id: relay17
+    name: 'Światło 7'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm35
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm35
+  
+  - platform: template
+    id: relay18
+    name: 'Lampa lustro'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm36
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm36
+
+  - platform: template
+    id: relay19
+    name: 'Światło 9'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm37
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm37
+  
+  - platform: template
+    id: relay20
+    name: 'Szyno przewod 2'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm38
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm38
+  
+  - platform: template
+    id: relay21
+    name: 'Przekaznik żyrandol 1 działa'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm39
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm39
+  
+  - platform: template
+    id: relay22
+    name: 'Przekaźnik żyrandol 2 zapas '
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm40
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm40
+
+  - platform: template
+    id: relay23
+    name: 'Przekaznik dzieci szyno przewod 1'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm41
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm41
+  
+  - platform: template
+    id: relay24
+    name: 'Przekaznik dzieci szyno przewod 2'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm42
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm42
+
+  - platform: template
+    id: relay25
+    name: 'Przekaźnik mała lampa w sypialni'
+    optimistic: true
+    turn_on_action:
+      then:
+        output.set_level:
+            id: pwm43
+            level: 100%
+    turn_off_action:
+      then:
+        output.turn_off: pwm43
+
+
+# KONFIGURACJA ROLETY
+#cover:
+#  - platform: time_based
+#    name: 'Roleta 1'
+#    id: cover_1
+#    open_action:
+#      - switch.turn_off: relay1
+#      - delay: 0.5s
+#      - switch.turn_on: relay2
+#    open_duration: 10s
+#    close_action:
+#      - switch.turn_off: relay2
+#      - delay: 0.5s
+#      - switch.turn_on: relay1
+#    close_duration: 10s
+#    stop_action:
+#      - switch.turn_off: relay1
+#      - switch.turn_off: relay2
+        
+# KONFIGURACJA WYJŚĆ/SWIATEŁ Z PWM
+light:
+
+# Konfiguracja od wyjścia 0-10V
+#  - platform: monochromatic
+#    output: ac_dimmer_1
+#    name: "DAC 1"
+
+#  - platform: monochromatic
+#    output: ac_dimmer_2
+#    name: "DAC 2"
+
+# KONFIGURACJA PASKÓW LED RGBW
+  - platform: rgbw
+    name: "Ledy salon"
+    id: LED_RGBW1_LIVING_ROOM_1
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 2s
+    green: pwm01
+    red: pwm02
+    blue: pwm03
+    white: pwm04
+
+  - platform: rgbw
+    name: "Ledy sypialnia"
+    id: LED_RGBW3_BED_ROOM
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    green: pwm09
+    red: pwm10
+    blue: pwm11
+    white: pwm12
+
+  - platform: rgbw
+    name: "Ledy młodzież"
+    id: LED_RGBW4_CHILD_ROOM
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    green: pwm05
+    red: pwm06
+    blue: pwm07
+    white: pwm08
+    
+
+  - platform: monochromatic
+    name: "Ledy korytaż"
+    id: LED_WHITE_1
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm13
+
+# KONFIGURACJA PASKÓW LED POJEDYNCZYCH
+  - platform: monochromatic
+    name: "Led łazienka"
+    id: LED_WHITE_2
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm14
+
+  - platform: monochromatic
+    name: "Led pojedynczy"
+    id: LED_WHITE_3
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm15
+
+##########################################################
+##### USTAWIENIA ELEMENTÓW EKRANU OLED
+##########################################################
+
+# USTAWIENIA ELEMENTÓW TEKSTOWYCH
+text_sensor:
+  - platform: template
+    name: "ESP32-M03 Uptime"
+    id: uptime_human_M03
+    icon: mdi:clock-start
+  - platform: template
+    name: "IP"
+    id: ip_address
+    entity_category: diagnostic
+    icon: "mdi:ip-network"
+    lambda: return { id(eth).get_ip_address().str() };
+    # dla nwoego ESP lambda: return { id(eth).get_ip_addresses()[0].str() };
+    update_interval: 10s
+
+#USTAWENIA CZCIONEK
+font:
+- file: 'arial.ttf'
+  id: font1
+  size: 12
+
+- file: 'materialdesignicons-webfont.ttf'
+  id: materialdesignicons
+  size: 15
+  glyphs: [
+      "\U000F0317", # lan
+      "\U000F04A2", # signal
+      "\U000F05A9", # wifi
+      "\U000F048B", # server
+      "\U000F0FA9", # clock
+      "\U000F050F" # thermometer
+      ]
+
+# USTAWIENIA EKRANU
+display:
+  - platform: ssd1306_i2c
+    model: "SSD1306_128X64"
+    lambda: |-
+      int seconds = round(id(upt_M03).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600);
+      int hours = seconds / 3600;
+      it.print(0, 0, id(materialdesignicons), TextAlign::LEFT, "\U000F0317");
+      it.printf(18, 1,id(font1), "%s", id(ip_address).state.c_str());
+      it.print(0, 16, id(materialdesignicons), TextAlign::LEFT, "\U000F0FA9");
+      it.printf(18,17,id(font1),"%d dni, %02d godzin",days,hours);
+      it.print(0, 32, id(materialdesignicons), TextAlign::LEFT, "\U000F048B");
+      it.printf(18, 33, id(font1), "SM-PRO-3448D"); 
+      it.print(0, 48, id(materialdesignicons), TextAlign::LEFT, "\U000F050F");
+      it.printf(18, 49, id(font1), "%.1f°, %.1f°", id(temp_1).state, id(temp_2).state); 
+
+
+    

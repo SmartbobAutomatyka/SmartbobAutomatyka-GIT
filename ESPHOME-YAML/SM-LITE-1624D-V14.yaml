@@ -1,0 +1,867 @@
+substitutions:
+  name: smartbob-1624d-1
+  friendly_name: SMARTBOB-1624D-1
+
+# NAZWA STEROWNIKA
+esphome:
+  name: ${name}
+  comment: ${friendly_name}
+  on_boot:
+    then:
+      # read the RTC time once when the system boots
+      ds1307.read_time:
+
+# KLUCZ HA - USTAW SWÓJ
+api:
+  encryption:
+    key: "98MUt/upiZL3PhfR1Ynu7ji8EHjd8tuvR8zOAS2/RDI="
+  reboot_timeout: 0s
+
+# KLUCZ OTA - USTAW SWÓJ
+ota:
+  - platform: esphome
+    password: "6d492e327cf49782cc7de2da362196dc"
+
+# RODZAJ PROCESORA
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# LOGOWANIE
+logger:
+  level: VERBOSE
+
+# KOMNUNIKACJA UART-RS485 - USTAW SWOJĄ CZESTOLIWOŚĆ
+uart:
+  rx_pin: 13
+  tx_pin: 33
+  baud_rate: 2400
+  stop_bits: 1
+
+# KONFIGURACJA CZUJNIKÓW I PERYFERIÓW
+sensor:
+  # LICZNIK ENRGII SDM
+  #- platform: sdm_meter
+  #  phase_a:
+  #    current:
+  #      name: "SDM630M Current "
+  #    voltage:
+  #      name: "SDM630M Voltage1"
+  #    active_power:
+  #      name: "SDM630M Power "
+  #    power_factor:
+  #      name: "SDM630M Power Factor"
+  #    apparent_power:
+  #      name: "SDM630M Apparent Power"
+  #    reactive_power:
+  #      name: "SDM630M Reactive Power"
+  #    phase_angle:
+  #      name: "SDM630M Phase Angle"
+  #  update_interval: 15s
+
+  #CZUJNIK NA I2C
+  #- platform: bme280_i2c
+  #  temperature:
+  #    name: "Zewętrzne I2C temperatura"
+  #  humidity:
+  #    name: "Zewnętrzne I2C wilgotność"
+  #  address: 0x76
+  #  update_interval: 15s
+  #  i2c_id: bus_b
+
+  # PRZEKŁADNIK PRĄDOWY    
+  #- platform: ct_clamp
+  #  sensor: adc_sensor_1
+  #  name: "Prąd z przekładnika"
+  #  update_interval: 20s
+  #  filters:
+  #    - calibrate_linear:
+  #      - 0 -> 0
+  #      - 0.1 -> 2.5
+
+  # PRZEKŁADNIK PRĄDOWY ADC
+  #- platform: adc
+  #  pin: GPIO36
+  #  id: adc_sensor_1
+  #  attenuation: 11db
+
+  # WEJŚCIE POMIARU NAPIĘCIA DO 60V
+  - platform: adc
+    pin: GPIO34
+    id: adc_sensor_2
+    name: "Napięcie HV 1"
+    attenuation: 11db
+    #KALIBRACJA DLA 24V
+    filters:
+      - calibrate_linear:
+        - 0.689 -> 5
+        - 1.376 -> 10
+        - 2.060 -> 15
+        - 2.730 -> 20
+        - 3.139 -> 25
+    update_interval: 5s
+
+  # WEJŚCIE POMIARU NAPIĘCIA DO 60V
+  #- platform: adc
+  #  pin: GPIO35
+  #  id: adc_sensor_3
+  #  name: "Napięcie HV 2"
+  #  attenuation: 11db
+  #  filters:
+  #    - multiply: 20.81
+  #  update_interval: 10s
+  
+  # WEJŚCIE POMIARU NAPIĘCIA DO 3.3V
+  #- platform: adc
+  #  pin: GPIO39
+  #  id: adc_sensor_4
+  #  attenuation: 11db
+  #  name: "Wejście LV 1"
+
+  # TEMPERATURA PROCESORA
+  - platform: internal_temperature
+    name: "Temperatura CPU"
+    update_interval: 30s
+
+  # CZUJNIK POMIARU TEMPERATURY PCB 1 - TU MOŻESZ USTAWIĆ REKACJĘ NA ZBYT WYSOKĄ TEMPERATURĘ, BEZ TEGO STEROWNIK SAM SIĘ WYŁĄCZY PRZY 80C
+  - platform: tmp102
+    name: "Temperatura PCB 1"
+    address: 0x48
+    id: temp_1
+    update_interval: 15s
+    i2c_id: bus_a
+    #on_value_range:
+    #    - above: 72.0
+    #      then:
+    #        - output.turn_off: relay_01
+    #        - output.turn_off: relay_02
+
+  # CZUJNIK POMIARU TEMPERATURY PCB 2 - TU MOŻESZ USTAWIĆ REKACJĘ NA ZBYT WYSOKĄ TEMPERATURĘ, BEZ TEGO STEROWNIK SAM SIĘ WYŁĄCZY PRZY 80C
+  - platform: tmp102
+    name: "Temperatura PCB 2"
+    address: 0x49
+    id: temp_2
+    update_interval: 15s
+    i2c_id: bus_a
+    #on_value_range:
+    #    - above: 72.0
+    #      then:
+    #        - output.turn_off: relay_01
+    #        - output.turn_off: relay_02
+
+
+  # POMIAR CZASU OD OSTATNIEGO URUCHOMIENIA
+  - platform: uptime
+    name: Uptime Sensor
+    id: uptime_sensor_M03
+    internal: true
+    update_interval: 60s
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human_M03
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor_M03).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? to_string(days) + "d " : "") +
+                (hours ? to_string(hours) + "h " : "") +
+                (minutes ? to_string(minutes) + "m " : "") +
+                (to_string(seconds) + "s")
+              ).c_str();
+  
+  # POMIAR CZASU OD OSTATNIEGO URUCHOMIENIA
+  - platform: uptime
+    name: "Uptime Sensor M03"
+    id: upt_M03
+    internal: true
+
+# KOFNIFGURACJA 1WIRE
+#dallas:
+#  - pin: GPIO3
+
+#KONFIGRUACJA ZEGARA CZASU RZECZYWISTEGO
+time:
+  - platform: ds1307
+    id: ds1307_time
+    i2c_id: bus_a
+  - platform: homeassistant
+    id: homeassistant_time
+  - platform: sntp
+    id: sntp_time
+    timezone: Europe/Sofia
+    servers:
+     - 0.pool.ntp.org
+     - 1.pool.ntp.org
+     - 2.pool.ntp.org
+    on_time_sync:
+      then:
+        # ... and update the RTC when the synchronization was successful
+        ds1307.write_time:
+
+# KONFIGURACJA LAN LUB WIFI
+#wifii:
+  #ssid: "12345678"  
+  #password: "12345678"
+  #id: eth
+
+ethernet:
+  type: LAN8720
+  mdc_pin: GPIO23
+  mdio_pin: GPIO18
+  clk_mode: GPIO17_OUT
+  phy_addr: 1
+  id: eth
+
+  # STAŁE IP
+  #manual_ip:
+    #static_ip: 192.168.0.40
+    #gateway: 192.168.0.1
+    #subnet: 255.255.255.0
+    #dns1 : 8.8.8.8
+    #dns2 : 8.8.4.4
+
+
+# KONFIGURACJA I2C 
+i2c:
+   - id: bus_a
+     sda: 5
+     scl: 15
+     scan: true
+     frequency: 400kHz
+   - id: bus_b
+     sda: 32
+     scl: 16
+     scan: true
+     frequency: 400kHz
+
+# KONFIGURACJA MCP23017
+mcp23017:
+  - id: 'mcp23017_hub_2' 
+    address: 0x21
+    i2c_id: bus_a
+
+
+# KONFIGURACJA DIODY LED ORAZ BUZZERA OD ALARMU
+switch:
+  - platform: gpio
+    pin: GPIO4
+    name: "ALARM"
+    id: alarm_01
+  
+  # PRZYKŁAD MAPAWANIA WYJŚCIA PWM JAKO 0/1
+  #- platform: template
+  #  name: "Relay 1"
+  #  id: relay1
+  #  optimistic: true
+  #  turn_on_action:
+  #    then:
+  #      output.set_level:
+  #          id: pwm01
+  #          level: 100%
+  #  turn_off_action:
+  #    then:
+  #      output.turn_off: pwm01
+
+# KONFIGURACJA PCA9685
+pca9685:
+  - id: 'pca9685_hub_1' 
+    frequency: 1000
+    address: 0x40
+    i2c_id: bus_a
+  - id: 'pca9685_hub_2' 
+    frequency: 1000
+    address: 0x43
+    i2c_id: bus_a
+
+# KONFIGURACJA WEJŚĆ
+binary_sensor:
+  - platform: gpio
+    name: "INPUT-01"
+    id: input_01
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 7
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+       then:
+        - light.toggle: LED_RGB1
+  - platform: gpio
+    name: "INPUT-02"
+    id: input_02
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 6
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+       then:
+        - light.toggle: LED_RGB2
+  - platform: gpio
+    name: "INPUT-03"
+    id: input_03
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 5
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+       then:
+        - light.toggle: LED_RGB3
+  - platform: gpio
+    name: "INPUT-04"
+    id: input_04
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 4
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+       then:
+        - light.toggle: LED_RGB4
+  - platform: gpio
+    name: "INPUT-05"
+    id: input_05
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 3
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+       then:
+        - light.toggle: LED_RGB5
+  - platform: gpio
+    name: "INPUT-06"
+    id: input_06
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 2
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+       then:
+        - light.toggle: LED_RGB6
+  - platform: gpio
+    name: "INPUT-07"
+    id: input_07
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 1
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+       then:
+        - light.toggle: LED_RGB7
+  - platform: gpio
+    name: "INPUT-08"
+    id: input_08
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 0
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+       then:
+        - light.toggle: LED_RGB8
+  - platform: gpio
+    name: "INPUT-09"
+    id: input_09
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 15
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+       then:
+        - light.toggle: LED_RGB9
+  - platform: gpio
+    name: "INPUT-10"
+    id: input_10
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 14
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+       then:
+        - light.toggle: LED_RGB10
+  - platform: gpio
+    name: "INPUT-11"
+    id: input_11
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 13
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+       then:
+        - light.toggle: LED_RGB11
+  - platform: gpio
+    name: "INPUT-12"
+    id: input_12
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 12
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+       then:
+        - light.toggle: LED_RGB12
+  - platform: gpio
+    name: "INPUT-13"
+    id: input_13
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 11
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+       then:
+        - light.toggle: LED_RGB13
+  - platform: gpio
+    name: "INPUT-14"
+    id: input_14
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 10
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+       then:
+        - light.toggle: LED_RGB14
+  - platform: gpio
+    name: "INPUT-15"
+    id: input_15
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 9
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+       then:
+        - light.toggle: LED_RGB15
+  - platform: gpio
+    name: "INPUT-16"
+    id: input_16
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 8
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+       then:
+        - light.toggle: LED_RGB16
+
+output:
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 4
+    id: pwm01
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 5
+    id: pwm02
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 6
+    id: pwm03
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 7
+    id: pwm04
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 8
+    id: pwm05
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 9
+    id: pwm06
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 10
+    id: pwm07
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 11
+    id: pwm08
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 12
+    id: pwm09
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 13
+    id: pwm10
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 14
+    id: pwm11
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 15
+    id: pwm12
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 4
+    id: pwm13
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 5
+    id: pwm14
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 6
+    id: pwm15
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 7
+    id: pwm16
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 8
+    id: pwm17
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 9
+    id: pwm18
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 10
+    id: pwm19
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 11
+    id: pwm20
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 12
+    id: pwm21
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 13
+    id: pwm22
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 14
+    id: pwm23
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_2'
+    channel: 15
+    id: pwm24
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 0
+    id: pwm25
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 1
+    id: pwm26
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 2
+    id: pwm27
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub_1'
+    channel: 3
+    id: pwm28
+
+# KONFIGURACJA SWIATEŁ LED
+light:
+  - platform: monochromatic
+    name: "LEDY1"
+    id: LED_RGB1
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm01
+  - platform: monochromatic
+    name: "LEDY2"
+    id: LED_RGB2
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm02
+  - platform: monochromatic
+    name: "LEDY3"
+    id: LED_RGB3
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm03
+  - platform: monochromatic
+    name: "LEDY4"
+    id: LED_RGB4
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm04
+  - platform: monochromatic
+    name: "LEDY5"
+    id: LED_RGB5
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm05
+  - platform: monochromatic
+    name: "LEDY6"
+    id: LED_RGB6
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm06
+  - platform: monochromatic
+    name: "LEDY7"
+    id: LED_RGB7
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm07
+  - platform: monochromatic
+    name: "LEDY8"
+    id: LED_RGB8
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm08
+  - platform: monochromatic
+    name: "LEDY9"
+    id: LED_RGB9
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm09
+  - platform: monochromatic
+    name: "LEDY10"
+    id: LED_RGB10
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm10
+  - platform: monochromatic
+    name: "LEDY11"
+    id: LED_RGB11
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm11
+  - platform: monochromatic
+    name: "LEDY12"
+    id: LED_RGB12
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm12
+  - platform: monochromatic
+    name: "LEDY13"
+    id: LED_RGB13
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm13
+  - platform: monochromatic
+    name: "LEDY14"
+    id: LED_RGB14
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm14
+  - platform: monochromatic
+    name: "LEDY15"
+    id: LED_RGB15
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm15
+  - platform: monochromatic
+    name: "LEDY16"
+    id: LED_RGB16
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm16
+  - platform: monochromatic
+    name: "LEDY17"
+    id: LED_RGB17
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm17
+  - platform: monochromatic
+    name: "LEDY18"
+    id: LED_RGB18
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm18
+  - platform: monochromatic
+    name: "LEDY19"
+    id: LED_RGB19
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm19
+  - platform: monochromatic
+    name: "LEDY20"
+    id: LED_RGB20
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm20
+  - platform: monochromatic
+    name: "LEDY21"
+    id: LED_RGB21
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm21
+  - platform: monochromatic
+    name: "LEDY22"
+    id: LED_RGB22
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm22
+  - platform: monochromatic
+    name: "LEDY23"
+    id: LED_RGB23
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm23
+  - platform: monochromatic
+    name: "LEDY24"
+    id: LED_RGB24
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm24
+  
+  ## 4 DODATKOWE WYJŚCIA PWM ALE TYLKO CYFROWE DO 3.3V
+  - platform: monochromatic
+    name: "DODATKOWE 25"
+    id: LED_RGB25
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm25
+  - platform: monochromatic
+    name: "DODATKOWE 26"
+    id: LED_RGB26
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm26
+  - platform: monochromatic
+    name: "DODATKOWE 27"
+    id: LED_RGB27
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm27
+  - platform: monochromatic
+    name: "DODATKOWE 28"
+    id: LED_RGB28
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 1s
+    output: pwm28
+
+# AKTYWACJA WEB SERWERA
+web_server:
+  port: 80  
+
+# USTAWIENIA ELEMENTÓW TEKSTOWYCH
+text_sensor:
+  - platform: template
+    name: "ESP32-M03 Uptime"
+    id: uptime_human_M03
+    icon: mdi:clock-start
+  - platform: template
+    name: "IP"
+    id: ip_address
+    entity_category: diagnostic
+    icon: "mdi:ip-network"
+    lambda: return { id(eth).get_ip_addresses()[0].str() };
+    update_interval: 10s
+
+#USTAWENIA CZCIONEK
+font:
+- file: 'arial.ttf'
+  id: font1
+  size: 12
+
+- file: 'materialdesignicons-webfont.ttf'
+  id: materialdesignicons
+  size: 15
+  glyphs: [
+      "\U000F0317", # lan
+      "\U000F04A2", # signal
+      "\U000F05A9", # wifi
+      "\U000F048B", # server
+      "\U000F0FA9", # clock
+      "\U000F050F" # thermometer
+      ]
+
+# USTAWIENIA EKRANU
+display:
+  - platform: ssd1306_i2c
+    i2c_id: bus_a
+    model: "SSD1306_128X64"
+    lambda: |-
+      int seconds = round(id(upt_M03).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600);
+      int hours = seconds / 3600;
+      it.print(0, 0, id(materialdesignicons), TextAlign::LEFT, "\U000F0317");
+      it.printf(18, 1,id(font1), "%s", id(ip_address).state.c_str());
+      it.print(0, 16, id(materialdesignicons), TextAlign::LEFT, "\U000F0FA9");
+      it.printf(18,17,id(font1),"%d dni, %02d godzin",days,hours);
+      it.print(0, 32, id(materialdesignicons), TextAlign::LEFT, "\U000F048B");
+      it.printf(18, 33, id(font1), "SM-LITE-1624D"); 
+      it.print(0, 48, id(materialdesignicons), TextAlign::LEFT, "\U000F050F");
+      it.printf(18, 49, id(font1), "%.1f°, %.1f°", id(temp_1).state, id(temp_2).state); 
+      
