@@ -726,27 +726,25 @@ text_sensor:
 
 #USTAWENIA CZCIONEK
 font:
-- file: 'arial.ttf'
+- file: "gfonts://Roboto"
   id: font1
   size: 12
 
-- file: 'materialdesignicons-webfont.ttf'
+- file: "gfonts://Material+Symbols+Outlined"
   id: materialdesignicons
   size: 15
   glyphs: [
-      "\U000F0317", # lan
-      "\U000F04A2", # signal
-      "\U000F05A9", # wifi
-      "\U000F048B", # server
-      "\U000F0FA9", # clock
-      "\U000F050F" # thermometer
+      "\U0000eb2f", # lan
+      "\U0000e875", # server
+      "\U0000e8b5", # clock
+      "\U0000e1ff" # thermometer
       ]
 
-- file: 'materialdesignicons-webfont.ttf'
+- file: "gfonts://Material+Symbols+Outlined"
   id: materialdesignicons_big
   size: 30
   glyphs: [
-      "\U000F050F" # thermometer
+      "\U0000e1ff" # thermometer
       ]
 
 display:
@@ -759,25 +757,25 @@ display:
         lambda: |-
           it.printf(32, 5, id(font1), "SMARTBOB");
           it.printf(27, 22, id(font1), "AUTOMATYKA");  
-          it.printf(5, 39, id(font1), "WWW.SMARTBOB.PL");  
+          it.printf(5, 39, id(font1), "WWW.SMARTBOB.PL");
       - id: page2
         lambda: |-
           int seconds = round(id(upt_M03).state);
           int days = seconds / (24 * 3600);
           seconds = seconds % (24 * 3600);
           int hours = seconds / 3600;
-          it.print(0, 0, id(materialdesignicons), TextAlign::LEFT, "\U000F0317");
+          it.print(0, 0, id(materialdesignicons), TextAlign::LEFT, "\U0000eb2f");
           it.printf(18, 1,id(font1), "%s", id(ip_address).state.c_str());
-          it.print(0, 16, id(materialdesignicons), TextAlign::LEFT, "\U000F0FA9");
+          it.print(0, 16, id(materialdesignicons), TextAlign::LEFT, "\U0000e8b5");
           it.printf(18,17,id(font1),"%d dni, %02d godzin",days,hours);
-          it.print(0, 32, id(materialdesignicons), TextAlign::LEFT, "\U000F048B");
+          it.print(0, 32, id(materialdesignicons), TextAlign::LEFT, "\U0000e875");
           it.printf(18, 33, id(font1), "SM-LITE-1616R"); 
-          it.print(0, 48, id(materialdesignicons), TextAlign::LEFT, "\U000F050F");
-          it.printf(18, 49, id(font1), "%.1f°, %.1f°", id(temp_1).state, id(temp_2).state); 
+          it.print(0, 48, id(materialdesignicons), TextAlign::LEFT, "\U0000e1ff");
+          it.printf(18, 49, id(font1), "%.1f°, %.1f°", id(temp_1).state, id(temp_2).state);
       - id: page3
         lambda: |-
           it.printf(33, 5, id(font1), "OVERHEAT"); 
-          it.print(50, 20, id(materialdesignicons_big), TextAlign::LEFT, "\U000F050F");
+          it.print(50, 20, id(materialdesignicons_big), TextAlign::LEFT, "\U0000e1ff");
           it.printf(33, 52, id(font1), "%.1f°, %.1f°", id(temp_1).state, id(temp_2).state);
 
 
