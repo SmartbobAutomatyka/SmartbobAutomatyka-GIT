@@ -51,6 +51,27 @@ uart:
     debug:
       direction: BOTH
 
+# LAN OR WIFI
+  #wifi:
+  #ssid: "MY_WIFI_XX"
+  #password: "MY_WIFI_XX"
+  #id: eth
+
+ethernet:
+  type: LAN8720
+  mdc_pin: GPIO23
+  mdio_pin: GPIO18
+  clk_mode: GPIO17_OUT
+  phy_addr: 1
+  id: eth
+
+  #manual_ip:
+  #  static_ip: 192.168.0.50
+  #  gateway: 192.168.0.1
+  #  subnet: 255.255.255.0
+  #  dns1 : 8.8.8.8
+  #  dns2 : 8.8.4.4
+
 # SENSOR CONFIGURATION / KONFIR+GURACJA CZUJNIKÓW
 sensor:
   - platform: dallas_temp
@@ -228,28 +249,6 @@ time:
       - 0.pool.ntp.org
       - 1.pool.ntp.org
       - 2.pool.ntp.org
-
-  # LAN OR WIFI
-  #wifi:
-  #ssid: "MY_WIFI_XX"
-  #password: "MY_WIFI_XX"
-  #id: eth
-
-ethernet:
-  type: LAN8720
-  mdc_pin: GPIO23
-  mdio_pin: GPIO18
-  clk_mode: GPIO17_OUT
-  phy_addr: 1
-  id: eth
-
-  #manual_ip:
-  #  static_ip: 192.168.0.50
-  #  gateway: 192.168.0.1
-  #  subnet: 255.255.255.0
-  #  dns1 : 8.8.8.8
-  #  dns2 : 8.8.4.4
-
 
 # I2C DATA LINE CONFIGURATION / KONFIGURACJA MAGISTRALI I2C
 i2c:
@@ -646,8 +645,6 @@ binary_sensor:
     on_press:
       then:
         - switch.toggle: relay_16
-
-
 
 # WEB SERWER / SERWER WWW
 web_server:
