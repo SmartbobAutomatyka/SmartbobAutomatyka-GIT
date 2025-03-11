@@ -1,8 +1,9 @@
+# NAME / NAZWA
 substitutions:
   name: sm-lite-1616r-v15
   friendly_name: sm-lite-1616r-v15
 
-# NAZWA STEROWNIKA
+# DATA
 esphome:
   name: ${name}
   comment: ${friendly_name}
@@ -12,33 +13,33 @@ esphome:
       - delay: 7s
       - display.page.show: page2
 
-# KLUCZ HA - USTAW SWÓJ
+# HA CODE / KLUCZ HA
 api:
   encryption:
-    key: "98MUt/upiZL3PhfR1Ynu7ji8EHjd8tuvR8zOAS2/RDI="
+    key: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   reboot_timeout: 0s
 
-# KLUCZ OTA - USTAW SWÓJ
+# OTA CODE / KLUCZ OTA
 ota:
   - platform: esphome
-  #password: "6d492e327cf49782cc7de2da362196dc"
+  #password: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
-# RODZAJ PROCESORA
+# PROCESOR
 esp32:
   board: esp32dev
   framework:
     type: arduino
 
-# LOGOWANIE
+# LOGING LEVEL / LOGOWANIE
 logger:
   level: DEBUG
 
-# KONFIGURACJA 1WIRE
+# 1WIRE
 one_wire:
   - platform: gpio
     pin: GPIO32
 
-# KOMNUNIKACJA UART-RS485-MODBUS USTAW SWOJĄ CZESTOLIWOŚĆ
+# UART-RS485
 uart:
   - id: mod_uart
     rx_pin: 13
@@ -50,191 +51,153 @@ uart:
     debug:
       direction: BOTH
 
-modbus:
-  send_wait_time: 500ms
-  uart_id: mod_uart
-  id: mod_bus
-
-modbus_controller:
-  - id: SDM72DM
-    modbus_id: mod_bus
-    address: 1
-
-# KONFIGURACJA CZUJNIKÓW I PERYFERIÓW
+# SENSOR CONFIGURATION / KONFIR+GURACJA CZUJNIKÓW
 sensor:
-  # KONFIGURACJA SDM72 DO ODCZYTU DANYCH PO MODBUS
-  #- platform: modbus_controller
-  #  modbus_controller_id: SDM72DM
-  #  name: ${friendly_name} Total System Power
-  #  register_type: read
-  #  address: 0x0034
-  #  value_type: FP32
-  #  unit_of_measurement: W
-  #  state_class: "measurement"
-  #  device_class: "power"
-  #  accuracy_decimals: 3
+  - platform: dallas_temp
+    id: sensor_1wire
+    name: "Temperatura DS18B20"
+    update_interval: 10s
 
-  ##- platform: modbus_controller
-  #  modbus_controller_id: SDM72DM
-  #  name: ${friendly_name} Total Active Energy
-  #  register_type: read
-  #  address: 0x0156
-  #  value_type: FP32
-  #  unit_of_measurement: kWh
-  #  state_class: "total_increasing"
-  #  device_class: "energy"
-  #  accuracy_decimals: 3
-
-  # CZUJNIK NA I2C NP. BMP
-  #- platform: bme280_i2c
-  #  i2c_id: bus_b
-  #  temperature:
-  #    name: "Outside Temperature"
-  #    oversampling: 16x
-  #  pressure:
-  #    name: "Outside Pressure"
-  ##  address: 0x76
-  #  update_interval: 15s
-
-  # PRZEKŁADNIK PRĄDOWY    
+  # SCT SENSOR / KONFIGURACJA PRZEKŁADNIKA SCT
   - platform: ct_clamp
-    sensor: adc_ct
-    name: "Prąd z przekładnika"
+    id: sensor_ct_clamp
+    sensor: sensor_adc_ct
+    name: "SCT Current"
     update_interval: 1s
     filters:
       - calibrate_linear:
-        - 0 -> 0
-        - 0.1 -> 2.5
+          - 0 -> 0
+          - 0.1 -> 2.5
 
-  # PRZEKŁADNIK PRĄDOWY ADC
+  # SCT ADC / KANAŁ POMIARU SCT
   - platform: adc
     pin: GPIO39
-    id: adc_ct
+    id: sensor_adc_ct
     attenuation: 11db
 
-  # WEJŚCIE POMIARU NAPIĘCIA DO 25V
+  # EXT ADC INPUT 2 / KANAŁ POMIARU NAPIĘCIA 2
   - platform: adc
     pin: GPIO34
-    id: adc_sensor_2
+    id: sensor_adc_ext_2
     attenuation: 11db
-    name: "Napięcie ADC 2"
+    name: "Voltage ADC 2"
     device_class: "voltage"
     filters:
       - calibrate_linear:
-        - 0.62 -> 5
-        - 1.22 -> 10
-        - 1.83 -> 15
-        - 2.425 -> 20
-        - 2.975 -> 25
+          - 0.62 -> 5
+          - 1.22 -> 10
+          - 1.83 -> 15
+          - 2.425 -> 20
+          - 2.975 -> 25
     update_interval: 1s
 
-  # WEJŚCIE POMIARU NAPIĘCIA DO 25V
+  # EXT ADC INPUT 1 / KANAŁ POMIARU NAPIĘCIA 1
   - platform: adc
     pin: GPIO35
-    id: adc_sensor_1
+    id: sensor_adc_ext_1
     attenuation: 11db
-    name: "Napięcie ADC 1"
+    name: "Voltage ADC 1"
     device_class: "voltage"
     filters:
       - calibrate_linear:
-        - 0.62 -> 5
-        - 1.22 -> 10
-        - 1.83 -> 15
-        - 2.425 -> 20
-        - 2.975 -> 25
-    update_interval: 1s
-  
-  # WEJŚCIE POMIARU NAPIĘCIA ZASILANIE-PRZEKAŹNIKI
-  - platform: adc
-    pin: GPIO36
-    id: adc_sensor_4
-    attenuation: 11db
-    name: "Napięcie zasilanie"
-    device_class: "voltage"
-    filters:
-      - calibrate_linear:
-        - 0.55 -> 10
-        - 0.825 -> 15
-        - 1.10 -> 20
-        - 1.37 -> 25
+          - 0.62 -> 5
+          - 1.22 -> 10
+          - 1.83 -> 15
+          - 2.425 -> 20
+          - 2.975 -> 25
     update_interval: 1s
 
-  # CZUJNIK POMIARU TEMPERATURY PCB 1 - TU WPISZ ID KAŻDEO Z WYJŚĆ
+  # ADC INPUT VOLTAGE CHANNEL / KANAŁ POMIARU NAPIĘCIA ZASILANIA
+  - platform: adc
+    pin: GPIO36
+    id: sensor_adc_power_supply
+    attenuation: 11db
+    name: "Power voltage"
+    device_class: "voltage"
+    filters:
+      - calibrate_linear:
+          - 0.55 -> 10
+          - 0.825 -> 15
+          - 1.10 -> 20
+          - 1.37 -> 25
+    update_interval: 1s
+
+  # TMP102 OVER TEMP CONFIGURATION / KONFIGURACJA ZACHOWANIA PO PRZEKROCZENIU TEMPERATURY
   - platform: tmp102
     i2c_id: bus_a
     name: "Temperatura PCB 1"
     address: 0x48
-    id: temp_1
+    id: sensor_pcb_temp_1
     update_interval: 8s
     on_value:
       if:
         condition:
           sensor.in_range:
-            id: temp_1
+            id: sensor_pcb_temp_1
             above: 70.0
         then:
-        - display.page.show: page3
-        - switch.turn_off: relay_01
-        - switch.turn_off: relay_02
-        - switch.turn_off: relay_03
-        - switch.turn_off: relay_04
-        - switch.turn_off: relay_05
-        - switch.turn_off: relay_06
-        - switch.turn_off: relay_07
-        - switch.turn_off: relay_08
-        - switch.turn_off: relay_09
-        - switch.turn_off: relay_10
-        - switch.turn_off: relay_11
-        - switch.turn_off: relay_12
-        - switch.turn_off: relay_13
-        - switch.turn_off: relay_14
-        - switch.turn_off: relay_15
-        - switch.turn_off: relay_16
-    
-  # CZUJNIK POMIARU TEMPERATURY PCB 2 - TU WPISZ ID KAŻDEO Z WYJŚĆ
+          - display.page.show: page3
+          - switch.turn_off: relay_01
+          - switch.turn_off: relay_02
+          - switch.turn_off: relay_03
+          - switch.turn_off: relay_04
+          - switch.turn_off: relay_05
+          - switch.turn_off: relay_06
+          - switch.turn_off: relay_07
+          - switch.turn_off: relay_08
+          - switch.turn_off: relay_09
+          - switch.turn_off: relay_10
+          - switch.turn_off: relay_11
+          - switch.turn_off: relay_12
+          - switch.turn_off: relay_13
+          - switch.turn_off: relay_14
+          - switch.turn_off: relay_15
+          - switch.turn_off: relay_16
+
+  # TMP102 OVER TEMP CONFIGURATION / KONFIGURACJA ZACHOWANIA PO PRZEKROCZENIU TEMPERATURY
   - platform: tmp102
     i2c_id: bus_a
     name: "Temperatura PCB 2"
     address: 0x49
-    id: temp_2
+    id: sensor_pcb_temp_2
     update_interval: 8s
     on_value:
       if:
         condition:
           sensor.in_range:
-            id: temp_2
+            id: sensor_pcb_temp_2
             above: 70.0
         then:
-        - display.page.show: page3
-        - switch.turn_off: relay_01
-        - switch.turn_off: relay_02
-        - switch.turn_off: relay_03
-        - switch.turn_off: relay_04
-        - switch.turn_off: relay_05
-        - switch.turn_off: relay_06
-        - switch.turn_off: relay_07
-        - switch.turn_off: relay_08
-        - switch.turn_off: relay_09
-        - switch.turn_off: relay_10
-        - switch.turn_off: relay_11
-        - switch.turn_off: relay_12
-        - switch.turn_off: relay_13
-        - switch.turn_off: relay_14
-        - switch.turn_off: relay_15
-        - switch.turn_off: relay_16
-    
-  # POMIAR CZASU OD OSTATNIEGO URUCHOMIENIA
+          - display.page.show: page3
+          - switch.turn_off: relay_01
+          - switch.turn_off: relay_02
+          - switch.turn_off: relay_03
+          - switch.turn_off: relay_04
+          - switch.turn_off: relay_05
+          - switch.turn_off: relay_06
+          - switch.turn_off: relay_07
+          - switch.turn_off: relay_08
+          - switch.turn_off: relay_09
+          - switch.turn_off: relay_10
+          - switch.turn_off: relay_11
+          - switch.turn_off: relay_12
+          - switch.turn_off: relay_13
+          - switch.turn_off: relay_14
+          - switch.turn_off: relay_15
+          - switch.turn_off: relay_16
+
+  # TIME / CZAS
   - platform: uptime
     name: Uptime Sensor
-    id: uptime_sensor_M03
+    id: sensor_uptime
     internal: true
     update_interval: 60s
     on_raw_value:
       then:
         - text_sensor.template.publish:
-            id: uptime_human_M03
+            id: uptime_human
             state: !lambda |-
-              int seconds = round(id(uptime_sensor_M03).raw_state);
+              int seconds = round(id(sensor_uptime).raw_state);
               int days = seconds / (24 * 3600);
               seconds = seconds % (24 * 3600);
               int hours = seconds / 3600;
@@ -247,36 +210,29 @@ sensor:
                 (minutes ? to_string(minutes) + "m " : "") +
                 (to_string(seconds) + "s")
               ).c_str();
-  
-  # POMIAR CZASU OD OSTATNIEGO URUCHOMIENIA
+
+  # UPTIME / CZAS ŻYCIA
   - platform: uptime
     name: "Uptime Sensor M03"
     id: upt_M03
     internal: true
 
-#KONFIGRUACJA ZEGARA CZASU RZECZYWISTEGO
+# TIME CONFIGURATION / KONFIGRUACJA ZEGARA CZASU RZECZYWISTEGO
 time:
-  - platform: ds1307
-    id: ds1307_time
-    i2c_id: bus_a
   - platform: homeassistant
     id: homeassistant_time
   - platform: sntp
     id: sntp_time
     timezone: Europe/Sofia
     servers:
-     - 0.pool.ntp.org
-     - 1.pool.ntp.org
-     - 2.pool.ntp.org
-    on_time_sync:
-      then:
-        # ... and update the RTC when the synchronization was successful
-        ds1307.write_time:
+      - 0.pool.ntp.org
+      - 1.pool.ntp.org
+      - 2.pool.ntp.org
 
-# KONFIGURACJA LAN LUB WIFI
-#wifi:
-  #ssid: "BajecznaKrainaAlkoholu"  
-  #password: "Kolorowekredki2323"
+  # LAN OR WIFI
+  #wifi:
+  #ssid: "MY_WIFI_XX"
+  #password: "MY_WIFI_XX"
   #id: eth
 
 ethernet:
@@ -287,7 +243,6 @@ ethernet:
   phy_addr: 1
   id: eth
 
-  # STAŁE IP
   #manual_ip:
   #  static_ip: 192.168.0.50
   #  gateway: 192.168.0.1
@@ -296,40 +251,32 @@ ethernet:
   #  dns2 : 8.8.4.4
 
 
-# KONFIGURACJA I2C 
+# I2C DATA LINE CONFIGURATION / KONFIGURACJA MAGISTRALI I2C
 i2c:
-   - id: bus_a
-     sda: 15
-     scl: 5
-     scan: true
-     frequency: 400kHz
-   - id: bus_b
-     sda: 16
-     scl: 14
-     scan: true
-     frequency: 400kHz
+  - id: bus_a
+    sda: 15
+    scl: 5
+    scan: true
+    frequency: 400kHz
+  - id: bus_b
+    sda: 16
+    scl: 14
+    scan: true
+    frequency: 400kHz
 
-# KONFIGURACJA MCP23017
+# MCP23017 EXPANDERS IN AND OUT / KONFIGRUACJA EKSPANDERÓW WEJŚĆ I WYJŚĆ
 mcp23017:
-  - id: 'mcp23017_hub_2' 
+  - id: 'mcp23017_hub_2'
     address: 0x20
     i2c_id: bus_a
-  - id: 'mcp23017_hub_1' 
+  - id: 'mcp23017_hub_1'
     address: 0x21
     i2c_id: bus_a
 
-
-# KONFIGURACJA DIODY LED ORAZ BUZZERA OD ALARMU
+# OUTPUTS / WYJŚCIA
 switch:
-  #WYSTEROWANIE ALARMU Z ESP, WYAMGANA ZWROKA, OPCJA DODATKOWA
-  #- platform: gpio
-  #  pin: GPIO4
-  #  name: "ALARM"
-  #  id: alarm_01
-
-#KONFIGURACJA WYJŚĆ 
   - platform: gpio
-    name: "REALY-01"
+    name: "RELAY-01"
     id: relay_01
     pin:
       mcp23xxx: mcp23017_hub_1
@@ -337,7 +284,7 @@ switch:
       mode: OUTPUT
       inverted: false
   - platform: gpio
-    name: "REALY-02"
+    name: "RELAY-02"
     id: relay_02
     pin:
       mcp23xxx: mcp23017_hub_1
@@ -345,7 +292,7 @@ switch:
       mode: OUTPUT
       inverted: false
   - platform: gpio
-    name: "REALY-03"
+    name: "RELAY-03"
     id: relay_03
     pin:
       mcp23xxx: mcp23017_hub_1
@@ -353,7 +300,7 @@ switch:
       mode: OUTPUT
       inverted: false
   - platform: gpio
-    name: "REALY-04"
+    name: "RELAY-04"
     id: relay_04
     pin:
       mcp23xxx: mcp23017_hub_1
@@ -361,7 +308,7 @@ switch:
       mode: OUTPUT
       inverted: false
   - platform: gpio
-    name: "REALY-05"
+    name: "RELAY-05"
     id: relay_05
     pin:
       mcp23xxx: mcp23017_hub_1
@@ -369,7 +316,7 @@ switch:
       mode: OUTPUT
       inverted: false
   - platform: gpio
-    name: "REALY-06"
+    name: "RELAY-06"
     id: relay_06
     pin:
       mcp23xxx: mcp23017_hub_1
@@ -377,7 +324,7 @@ switch:
       mode: OUTPUT
       inverted: false
   - platform: gpio
-    name: "REALY-07"
+    name: "RELAY-07"
     id: relay_07
     pin:
       mcp23xxx: mcp23017_hub_1
@@ -385,7 +332,7 @@ switch:
       mode: OUTPUT
       inverted: false
   - platform: gpio
-    name: "REALY-08"
+    name: "RELAY-08"
     id: relay_08
     pin:
       mcp23xxx: mcp23017_hub_1
@@ -393,7 +340,7 @@ switch:
       mode: OUTPUT
       inverted: false
   - platform: gpio
-    name: "REALY-09"
+    name: "RELAY-09"
     id: relay_09
     pin:
       mcp23xxx: mcp23017_hub_1
@@ -401,7 +348,7 @@ switch:
       mode: OUTPUT
       inverted: false
   - platform: gpio
-    name: "REALY-10"
+    name: "RELAY-10"
     id: relay_10
     pin:
       mcp23xxx: mcp23017_hub_1
@@ -409,7 +356,7 @@ switch:
       mode: OUTPUT
       inverted: false
   - platform: gpio
-    name: "REALY-11"
+    name: "RELAY-11"
     id: relay_11
     pin:
       mcp23xxx: mcp23017_hub_1
@@ -417,7 +364,7 @@ switch:
       mode: OUTPUT
       inverted: false
   - platform: gpio
-    name: "REALY-12"
+    name: "RELAY-12"
     id: relay_12
     pin:
       mcp23xxx: mcp23017_hub_1
@@ -425,7 +372,7 @@ switch:
       mode: OUTPUT
       inverted: false
   - platform: gpio
-    name: "REALY-13"
+    name: "RELAY-13"
     id: relay_13
     pin:
       mcp23xxx: mcp23017_hub_1
@@ -433,7 +380,7 @@ switch:
       mode: OUTPUT
       inverted: false
   - platform: gpio
-    name: "REALY-14"
+    name: "RELAY-14"
     id: relay_14
     pin:
       mcp23xxx: mcp23017_hub_1
@@ -441,7 +388,7 @@ switch:
       mode: OUTPUT
       inverted: false
   - platform: gpio
-    name: "REALY-15"
+    name: "RELAY-15"
     id: relay_15
     pin:
       mcp23xxx: mcp23017_hub_1
@@ -449,7 +396,7 @@ switch:
       mode: OUTPUT
       inverted: false
   - platform: gpio
-    name: "REALY-16"
+    name: "RELAY-16"
     id: relay_16
     pin:
       mcp23xxx: mcp23017_hub_1
@@ -457,9 +404,7 @@ switch:
       mode: OUTPUT
       inverted: false
 
-  
-
-# KONFIGURACJA WEJŚĆ
+# INPUTS / WEJŚCIA
 binary_sensor:
   - platform: gpio
     name: "INPUT-01"
@@ -472,9 +417,9 @@ binary_sensor:
         pullup: false
       inverted: true
     filters:
-    - delayed_on: 30ms
+      - delayed_on: 30ms
     on_press:
-       then:
+      then:
         - switch.toggle: relay_01
   - platform: gpio
     name: "INPUT-02"
@@ -487,11 +432,10 @@ binary_sensor:
         pullup: false
       inverted: true
     filters:
-    - delayed_on: 30ms
+      - delayed_on: 30ms
     on_press:
-       then:
+      then:
         - switch.toggle: relay_02
-    
   - platform: gpio
     name: "INPUT-03"
     id: input_03
@@ -503,9 +447,9 @@ binary_sensor:
         pullup: false
       inverted: true
     filters:
-    - delayed_on: 30ms
+      - delayed_on: 30ms
     on_press:
-       then:
+      then:
         - switch.toggle: relay_03
   - platform: gpio
     name: "INPUT-04"
@@ -518,9 +462,9 @@ binary_sensor:
         pullup: false
       inverted: true
     filters:
-    - delayed_on: 30ms
+      - delayed_on: 30ms
     on_press:
-       then:
+      then:
         - switch.toggle: relay_04
   - platform: gpio
     name: "INPUT-05"
@@ -533,9 +477,9 @@ binary_sensor:
         pullup: false
       inverted: true
     filters:
-    - delayed_on: 30ms
+      - delayed_on: 30ms
     on_press:
-       then:
+      then:
         - switch.toggle: relay_05
   - platform: gpio
     name: "INPUT-06"
@@ -548,9 +492,9 @@ binary_sensor:
         pullup: false
       inverted: true
     filters:
-    - delayed_on: 30ms
+      - delayed_on: 30ms
     on_press:
-       then:
+      then:
         - switch.toggle: relay_06
   - platform: gpio
     name: "INPUT-07"
@@ -563,9 +507,9 @@ binary_sensor:
         pullup: false
       inverted: true
     filters:
-    - delayed_on: 30ms
+      - delayed_on: 30ms
     on_press:
-       then:
+      then:
         - switch.toggle: relay_07
   - platform: gpio
     name: "INPUT-08"
@@ -578,9 +522,9 @@ binary_sensor:
         pullup: false
       inverted: true
     filters:
-    - delayed_on: 30ms
+      - delayed_on: 30ms
     on_press:
-       then:
+      then:
         - switch.toggle: relay_08
   - platform: gpio
     name: "INPUT-09"
@@ -593,9 +537,9 @@ binary_sensor:
         pullup: false
       inverted: true
     filters:
-    - delayed_on: 30ms
+      - delayed_on: 30ms
     on_press:
-       then:
+      then:
         - switch.toggle: relay_09
   - platform: gpio
     name: "INPUT-10"
@@ -608,9 +552,9 @@ binary_sensor:
         pullup: false
       inverted: true
     filters:
-    - delayed_on: 30ms
+      - delayed_on: 30ms
     on_press:
-       then:
+      then:
         - switch.toggle: relay_10
   - platform: gpio
     name: "INPUT-11"
@@ -623,9 +567,9 @@ binary_sensor:
         pullup: false
       inverted: true
     filters:
-    - delayed_on: 30ms
+      - delayed_on: 30ms
     on_press:
-       then:
+      then:
         - switch.toggle: relay_11
   - platform: gpio
     name: "INPUT-12"
@@ -638,9 +582,9 @@ binary_sensor:
         pullup: false
       inverted: true
     filters:
-    - delayed_on: 30ms
+      - delayed_on: 30ms
     on_press:
-       then:
+      then:
         - switch.toggle: relay_12
   - platform: gpio
     name: "INPUT-13"
@@ -653,9 +597,9 @@ binary_sensor:
         pullup: false
       inverted: true
     filters:
-    - delayed_on: 30ms
+      - delayed_on: 30ms
     on_press:
-       then:
+      then:
         - switch.toggle: relay_13
   - platform: gpio
     name: "INPUT-14"
@@ -668,9 +612,9 @@ binary_sensor:
         pullup: false
       inverted: true
     filters:
-    - delayed_on: 30ms
+      - delayed_on: 30ms
     on_press:
-       then:
+      then:
         - switch.toggle: relay_14
   - platform: gpio
     name: "INPUT-15"
@@ -683,9 +627,9 @@ binary_sensor:
         pullup: false
       inverted: true
     filters:
-    - delayed_on: 30ms
+      - delayed_on: 30ms
     on_press:
-       then:
+      then:
         - switch.toggle: relay_15
   - platform: gpio
     name: "INPUT-16"
@@ -698,54 +642,53 @@ binary_sensor:
         pullup: false
       inverted: true
     filters:
-    - delayed_on: 30ms
+      - delayed_on: 30ms
     on_press:
-       then:
+      then:
         - switch.toggle: relay_16
 
 
 
-# AKTYWACJA WEB SERWERA
+# WEB SERWER / SERWER WWW
 web_server:
-  port: 80  
+  port: 80
 
-# USTAWIENIA ELEMENTÓW TEKSTOWYCH
+# TEXT / USTAWIENIA TEXT
 text_sensor:
   - platform: template
     name: "ESP32-M03 Uptime"
-    id: uptime_human_M03
+    id: uptime_human
     icon: mdi:clock-start
   - platform: template
     name: "IP"
     id: ip_address
     entity_category: diagnostic
     icon: "mdi:ip-network"
-    #lambda: return { id(eth).get_ip_address().str() };
     lambda: return { id(eth).get_ip_addresses()[0].str() };
     update_interval: 10s
 
-#USTAWENIA CZCIONEK
+# FONT / CZCIONKI
 font:
-- file: "gfonts://Roboto"
-  id: font1
-  size: 12
+  - file: "gfonts://Roboto"
+    id: text_font
+    size: 12
 
-- file: "gfonts://Material+Symbols+Outlined"
-  id: materialdesignicons
-  size: 15
-  glyphs: [
+  - file: "gfonts://Material+Symbols+Outlined"
+    id: icons
+    size: 15
+    glyphs: [
       "\U0000eb2f", # lan
       "\U0000e875", # server
       "\U0000e8b5", # clock
       "\U0000e1ff" # thermometer
-      ]
+    ]
 
-- file: "gfonts://Material+Symbols+Outlined"
-  id: materialdesignicons_big
-  size: 30
-  glyphs: [
+  - file: "gfonts://Material+Symbols+Outlined"
+    id: icons_big
+    size: 30
+    glyphs: [
       "\U0000e1ff" # thermometer
-      ]
+    ]
 
 display:
   - platform: ssd1306_i2c
@@ -755,30 +698,25 @@ display:
     pages:
       - id: page1
         lambda: |-
-          it.printf(32, 5, id(font1), "SMARTBOB");
-          it.printf(27, 22, id(font1), "AUTOMATYKA");  
-          it.printf(5, 39, id(font1), "WWW.SMARTBOB.PL");
+          it.printf(32, 5, id(text_font), "SMARTBOB");
+          it.printf(27, 22, id(text_font), "AUTOMATYKA");  
+          it.printf(5, 39, id(text_font), "WWW.SMARTBOB.PL");
       - id: page2
         lambda: |-
           int seconds = round(id(upt_M03).state);
           int days = seconds / (24 * 3600);
           seconds = seconds % (24 * 3600);
           int hours = seconds / 3600;
-          it.print(0, 0, id(materialdesignicons), TextAlign::LEFT, "\U0000eb2f");
-          it.printf(18, 1,id(font1), "%s", id(ip_address).state.c_str());
-          it.print(0, 16, id(materialdesignicons), TextAlign::LEFT, "\U0000e8b5");
-          it.printf(18,17,id(font1),"%d dni, %02d godzin",days,hours);
-          it.print(0, 32, id(materialdesignicons), TextAlign::LEFT, "\U0000e875");
-          it.printf(18, 33, id(font1), "SM-LITE-1616R"); 
-          it.print(0, 48, id(materialdesignicons), TextAlign::LEFT, "\U0000e1ff");
-          it.printf(18, 49, id(font1), "%.1f°, %.1f°", id(temp_1).state, id(temp_2).state);
+          it.print(0, 0, id(icons), TextAlign::LEFT, "\U0000eb2f");
+          it.printf(18, 1,id(text_font), "%s", id(ip_address).state.c_str());
+          it.print(0, 16, id(icons), TextAlign::LEFT, "\U0000e8b5");
+          it.printf(18,17,id(text_font),"%d dni, %02d godzin",days,hours);
+          it.print(0, 32, id(icons), TextAlign::LEFT, "\U0000e875");
+          it.printf(18, 33, id(text_font), "SM-LITE-1616R"); 
+          it.print(0, 48, id(icons), TextAlign::LEFT, "\U0000e1ff");
+          it.printf(18, 49, id(text_font), "%.1f°, %.1f°", id(sensor_pcb_temp_1).state, id(sensor_pcb_temp_2).state);
       - id: page3
         lambda: |-
-          it.printf(33, 5, id(font1), "OVERHEAT"); 
-          it.print(50, 20, id(materialdesignicons_big), TextAlign::LEFT, "\U0000e1ff");
-          it.printf(33, 52, id(font1), "%.1f°, %.1f°", id(temp_1).state, id(temp_2).state);
-
-
-
-        
-    
+          it.printf(33, 5, id(text_font), "OVERHEAT"); 
+          it.print(50, 20, id(icons_big), TextAlign::LEFT, "\U0000e1ff");
+          it.printf(33, 52, id(text_font, "%.1f°, %.1f°", id(sensor_pcb_temp_1).state, id(sensor_pcb_temp_2).state);
