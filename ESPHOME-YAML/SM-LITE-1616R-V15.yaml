@@ -72,7 +72,7 @@ ethernet:
   #  dns1 : 8.8.8.8
   #  dns2 : 8.8.4.4
 
-# SENSOR CONFIGURATION / KONFIR+GURACJA CZUJNIKÓW
+# SENSOR CONFIGURATION / KONFIGURACJA CZUJNIKÓW
 sensor:
   - platform: dallas_temp
     id: sensor_1wire
@@ -143,7 +143,7 @@ sensor:
           - 1.37 -> 25
     update_interval: 1s
 
-  # TMP102 OVER TEMP CONFIGURATION / KONFIGURACJA ZACHOWANIA PO PRZEKROCZENIU TEMPERATURY
+  # TMP102 OVER TEMP CONFIGURATION 1 / KONFIGURACJA ZACHOWANIA PO PRZEKROCZENIU TEMPERATURY CZUJNIK 1
   - platform: tmp102
     i2c_id: bus_a
     name: "Temperatura PCB 1"
@@ -175,7 +175,7 @@ sensor:
           - switch.turn_off: relay_15
           - switch.turn_off: relay_16
 
-  # TMP102 OVER TEMP CONFIGURATION / KONFIGURACJA ZACHOWANIA PO PRZEKROCZENIU TEMPERATURY
+  # TMP102 OVER TEMP CONFIGURATION 2 / KONFIGURACJA ZACHOWANIA PO PRZEKROCZENIU TEMPERATURY CZUJNIK 2
   - platform: tmp102
     i2c_id: bus_a
     name: "Temperatura PCB 2"
