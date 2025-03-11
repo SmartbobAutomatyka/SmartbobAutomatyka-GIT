@@ -719,4 +719,4 @@ display:
         lambda: |-
           it.printf(33, 5, id(text_font), "OVERHEAT"); 
           it.print(50, 20, id(icons_big), TextAlign::LEFT, "\U0000e1ff");
-          it.printf(33, 52, id(text_font, "%.1f°, %.1f°", id(sensor_pcb_temp_1).state, id(sensor_pcb_temp_2).state);
+          it.printf(33, 52, id(text_font), "%.1f°, %.1f°", id(sensor_pcb_temp_1).state, id(sensor_pcb_temp_2).state);
