@@ -664,6 +664,7 @@ binary_sensor:
 # WEB SERWER / SERWER WWW
 web_server:
   port: 80
+  id: com_web_server
 
 # TEXT / USTAWIENIA TEXT
 text_sensor:
