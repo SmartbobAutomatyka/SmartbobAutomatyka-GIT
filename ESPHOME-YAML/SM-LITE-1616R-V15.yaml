@@ -7,6 +7,9 @@ substitutions:
 esphome:
   name: ${name}
   comment: ${friendly_name}
+  project:
+    name: "smartbob.sm-lite-1616r"
+    version: "1.0.0"
   on_boot:
     then:
       - display.page.show: page1
