@@ -15,13 +15,15 @@ esphome:
 
 # HA CODE / KLUCZ HA
 api:
-  encryption:
-    key: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  #encryption:
+    #key: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  id: com_ha_api
   reboot_timeout: 0s
 
 # OTA CODE / KLUCZ OTA
 ota:
   - platform: esphome
+    id: update_ota
   #password: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 # PROCESOR
@@ -37,11 +39,12 @@ logger:
 # 1WIRE
 one_wire:
   - platform: gpio
+    id: com_one_wire
     pin: GPIO32
 
 # UART-RS485
 uart:
-  - id: mod_uart
+  - id: com_uart
     rx_pin: 13
     tx_pin: 33
     baud_rate: 9600
@@ -52,11 +55,21 @@ uart:
       direction: BOTH
 
 # LAN OR WIFI
-  #wifi:
-  #ssid: "MY_WIFI_XX"
-  #password: "MY_WIFI_XX"
-  #id: eth
 
+##### WIFI SECTION UNCOMMENT ALL IF USED / KONFIGURACJA WIFI ODKOMENTUJ CAŁOŚĆ JEŚLI UŻYWASZ
+
+## TEST OPTION / OPCJA TESTOWA
+# Improv via Serial / Automatyczna konfiguracja za pomoca kabla USB przez https://www.improv-wifi.com/
+# improv_serial:
+
+#wifi:
+  #id: eth
+  #ssid: "MY_WIFI_SSID or use IMPOROV_SERIAL"
+  #password: "MY_WIFI_PASS or use IMPOROV_SERIAL"
+
+#### WIFI END
+
+##### LAN SECTION UNCOMMENT ALL IF USED / KONFIGURACJA LAN ODKOMENTUJ CAŁOŚĆ JEŚLI UŻYWASZ
 ethernet:
   type: LAN8720
   mdc_pin: GPIO23
@@ -71,6 +84,8 @@ ethernet:
   #  subnet: 255.255.255.0
   #  dns1 : 8.8.8.8
   #  dns2 : 8.8.4.4
+
+#### LAN END
 
 # SENSOR CONFIGURATION / KONFIGURACJA CZUJNIKÓW
 sensor:
@@ -145,7 +160,7 @@ sensor:
 
   # TMP102 OVER TEMP CONFIGURATION 1 / KONFIGURACJA ZACHOWANIA PO PRZEKROCZENIU TEMPERATURY CZUJNIK 1
   - platform: tmp102
-    i2c_id: bus_a
+    i2c_id: com_i2c_bus_a
     name: "Temperatura PCB 1"
     address: 0x48
     id: sensor_pcb_temp_1
@@ -177,7 +192,7 @@ sensor:
 
   # TMP102 OVER TEMP CONFIGURATION 2 / KONFIGURACJA ZACHOWANIA PO PRZEKROCZENIU TEMPERATURY CZUJNIK 2
   - platform: tmp102
-    i2c_id: bus_a
+    i2c_id: com_i2c_bus_a
     name: "Temperatura PCB 2"
     address: 0x49
     id: sensor_pcb_temp_2
@@ -252,12 +267,12 @@ time:
 
 # I2C DATA LINE CONFIGURATION / KONFIGURACJA MAGISTRALI I2C
 i2c:
-  - id: bus_a
+  - id: com_i2c_bus_a
     sda: 15
     scl: 5
     scan: true
     frequency: 400kHz
-  - id: bus_b
+  - id: com_i2c_bus_b
     sda: 16
     scl: 14
     scan: true
@@ -267,10 +282,10 @@ i2c:
 mcp23017:
   - id: 'mcp23017_hub_2'
     address: 0x20
-    i2c_id: bus_a
+    i2c_id: com_i2c_bus_a
   - id: 'mcp23017_hub_1'
     address: 0x21
-    i2c_id: bus_a
+    i2c_id: com_i2c_bus_a
 
 # OUTPUTS / WYJŚCIA
 switch:
@@ -689,7 +704,7 @@ font:
 
 display:
   - platform: ssd1306_i2c
-    i2c_id: bus_a
+    i2c_id: com_i2c_bus_a
     model: "SSD1306_128X64"
     id: oled_display
     pages:
