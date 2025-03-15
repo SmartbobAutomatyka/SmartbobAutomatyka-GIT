@@ -13,14 +13,14 @@ esphome:
       - delay: 7s
       - display.page.show: page2
 
-# HA CODE / KLUCZ HA
+# HA CODE / KLUCZ HA DODAJ SWÓJ WŁASNY WYGENROWANY Z HA DLA ESP32
 api:
   #encryption:
     #key: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   id: com_ha_api
   reboot_timeout: 0s
 
-# OTA CODE / KLUCZ OTA
+# OTA CODE / KLUCZ OTA DODAJ SWÓJ WŁASNY WYGENROWANY Z HA DLA ESP32
 ota:
   - platform: esphome
     id: update_ota
