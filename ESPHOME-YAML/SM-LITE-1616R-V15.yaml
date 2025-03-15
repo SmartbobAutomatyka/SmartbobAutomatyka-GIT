@@ -250,7 +250,7 @@ sensor:
   # UPTIME ON HA/ CZAS ŻYCIA HA
   - platform: uptime
     name: "Time text on HA"
-    id: upt_time_text_ha
+    id: upt_time_text
     internal: true
 
 # TIME CONFIGURATION / KONFIGRUACJA ZEGARA CZASU RZECZYWISTEGO
@@ -716,7 +716,7 @@ display:
           it.printf(5, 39, id(text_font), "WWW.SMARTBOB.PL");
       - id: page2
         lambda: |-
-          int seconds = round(id(upt_time_text_display).state);
+          int seconds = round(id(upt_time_text).state);
           int days = seconds / (24 * 3600);
           seconds = seconds % (24 * 3600);
           int hours = seconds / 3600;
