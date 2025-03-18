@@ -15,6 +15,8 @@ esphome:
       - display.page.show: page1
       - delay: 7s
       - display.page.show: page2
+  # ADD MAC NUMBER TO NAME / DODAWANIE ADRESU MAC DO NAZWY
+  name_add_mac_suffix: false
 
 # HA CODE / KLUCZ HA DODAJ SWÓJ WŁASNY WYGENROWANY Z HA DLA ESP32
 api:
@@ -58,21 +60,23 @@ uart:
       direction: BOTH
 
 # LAN OR WIFI
+##### WIFI SECTION / KONFIGURACJA WIFI
 
-##### WIFI SECTION UNCOMMENT ALL IF USED / KONFIGURACJA WIFI ODKOMENTUJ CAŁOŚĆ JEŚLI UŻYWASZ
-
-## TEST OPTION / OPCJA TESTOWA
 # Improv via Serial / Automatyczna konfiguracja za pomoca kabla USB przez https://www.improv-wifi.com/
 # improv_serial:
 
+## SETUP WIFI AS CLIENT MODE / USTAW WIFI JAKO KLIENTA
 #wifi:
   #id: eth
-  #ssid: "MY_WIFI_SSID or use IMPOROV_SERIAL"
-  #password: "MY_WIFI_PASS or use IMPOROV_SERIAL"
+  #ssid: "MY_WIFI_SSID"
+  #password: "MY_WIFI_PASS"
+
+## SETUP WIFI AS ACCESS POINT / USTAW WIFI W TRYB PRACY ACCESS POINT
+  #ap:
+  #  password: "MY_WIFI_PASS"
 
 #### WIFI END
-
-##### LAN SECTION UNCOMMENT ALL IF USED / KONFIGURACJA LAN ODKOMENTUJ CAŁOŚĆ JEŚLI UŻYWASZ
+##### LAN SECTION/ KONFIGURACJA LAN
 ethernet:
   type: LAN8720
   mdc_pin: GPIO23
