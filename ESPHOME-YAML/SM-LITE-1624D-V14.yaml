@@ -1,15 +1,24 @@
+# NAME / NAZWA
 substitutions:
-  name: smartbob-1624d-1
-  friendly_name: SMARTBOB-1624D-1
+  name: sm-lite-1616r-v15
+  friendly_name: sm-lite-1616r-v15
 
-# NAZWA STEROWNIKA
+# DATA
 esphome:
   name: ${name}
   comment: ${friendly_name}
+  project:
+    name: "smartbob.sm-lite-1624d"
+    version: "1.0.0"
   on_boot:
     then:
-      # read the RTC time once when the system boots
-      ds1307.read_time:
+      - display.page.show: page1
+      - delay: 7s
+      - display.page.show: page2
+  # read the RTC time once when the system boots
+      - ds1307.read_time:
+  # ADD MAC NUMBER TO NAME / DODAWANIE ADRESU MAC DO NAZWY
+  name_add_mac_suffix: false
 
 # KLUCZ HA - USTAW SWÓJ
 api:
@@ -68,7 +77,7 @@ sensor:
   #    name: "Zewnętrzne I2C wilgotność"
   #  address: 0x76
   #  update_interval: 15s
-  #  i2c_id: bus_b
+  #  i2c_id: com_i2c_bus_b
 
   # PRZEKŁADNIK PRĄDOWY    
   #- platform: ct_clamp
@@ -128,41 +137,51 @@ sensor:
   - platform: tmp102
     name: "Temperatura PCB 1"
     address: 0x48
-    id: temp_1
+    id: sensor_pcb_temp_1
     update_interval: 15s
-    i2c_id: bus_a
-    #on_value_range:
-    #    - above: 72.0
-    #      then:
-    #        - output.turn_off: relay_01
-    #        - output.turn_off: relay_02
+    i2c_id: com_i2c_bus_a
+    on_value:
+      if:
+        condition:
+          sensor.in_range:
+            id: sensor_pcb_temp_2
+            above: 70.0
+        then:
+          - display.page.show: page3
+          - light.turn_off: LED_1
+          - light.turn_off: LED_2
 
   # CZUJNIK POMIARU TEMPERATURY PCB 2 - TU MOŻESZ USTAWIĆ REKACJĘ NA ZBYT WYSOKĄ TEMPERATURĘ, BEZ TEGO STEROWNIK SAM SIĘ WYŁĄCZY PRZY 80C
   - platform: tmp102
     name: "Temperatura PCB 2"
     address: 0x49
-    id: temp_2
+    id: sensor_pcb_temp_2
     update_interval: 15s
-    i2c_id: bus_a
-    #on_value_range:
-    #    - above: 72.0
-    #      then:
-    #        - output.turn_off: relay_01
-    #        - output.turn_off: relay_02
+    i2c_id: com_i2c_bus_a
+    on_value:
+      if:
+        condition:
+          sensor.in_range:
+            id: sensor_pcb_temp_2
+            above: 70.0
+        then:
+          - display.page.show: page3
+          - light.turn_off: LED_1
+          - light.turn_off: LED_2
 
 
-  # POMIAR CZASU OD OSTATNIEGO URUCHOMIENIA
+    # TIME / CZAS
   - platform: uptime
     name: Uptime Sensor
-    id: uptime_sensor_M03
+    id: sensor_uptime
     internal: true
     update_interval: 60s
     on_raw_value:
       then:
         - text_sensor.template.publish:
-            id: uptime_human_M03
+            id: uptime_human
             state: !lambda |-
-              int seconds = round(id(uptime_sensor_M03).raw_state);
+              int seconds = round(id(sensor_uptime).raw_state);
               int days = seconds / (24 * 3600);
               seconds = seconds % (24 * 3600);
               int hours = seconds / 3600;
@@ -176,30 +195,30 @@ sensor:
                 (to_string(seconds) + "s")
               ).c_str();
   
-  # POMIAR CZASU OD OSTATNIEGO URUCHOMIENIA
+  # UPTIME ON HA/ CZAS ŻYCIA HA
   - platform: uptime
-    name: "Uptime Sensor M03"
-    id: upt_M03
+    name: "Time text on HA"
+    id: upt_time_text
     internal: true
 
 # KOFNIFGURACJA 1WIRE
 #dallas:
 #  - pin: GPIO3
 
-#KONFIGRUACJA ZEGARA CZASU RZECZYWISTEGO
+# TIME CONFIGURATION / KONFIGRUACJA ZEGARA CZASU RZECZYWISTEGO
 time:
   - platform: ds1307
     id: ds1307_time
-    i2c_id: bus_a
+    i2c_id: com_i2c_bus_a
   - platform: homeassistant
     id: homeassistant_time
   - platform: sntp
     id: sntp_time
     timezone: Europe/Sofia
     servers:
-     - 0.pool.ntp.org
-     - 1.pool.ntp.org
-     - 2.pool.ntp.org
+      - 0.pool.ntp.org
+      - 1.pool.ntp.org
+      - 2.pool.ntp.org
     on_time_sync:
       then:
         # ... and update the RTC when the synchronization was successful
@@ -230,12 +249,12 @@ ethernet:
 
 # KONFIGURACJA I2C 
 i2c:
-   - id: bus_a
+   - id: com_i2c_bus_a
      sda: 5
      scl: 15
      scan: true
      frequency: 400kHz
-   - id: bus_b
+   - id: com_i2c_bus_b
      sda: 32
      scl: 16
      scan: true
@@ -245,7 +264,7 @@ i2c:
 mcp23017:
   - id: 'mcp23017_hub_2' 
     address: 0x21
-    i2c_id: bus_a
+    i2c_id: com_i2c_bus_a
 
 
 # KONFIGURACJA DIODY LED ORAZ BUZZERA OD ALARMU
@@ -274,11 +293,11 @@ pca9685:
   - id: 'pca9685_hub_1' 
     frequency: 1000
     address: 0x40
-    i2c_id: bus_a
+    i2c_id: com_i2c_bus_a
   - id: 'pca9685_hub_2' 
     frequency: 1000
     address: 0x43
-    i2c_id: bus_a
+    i2c_id: com_i2c_bus_a
 
 # KONFIGURACJA WEJŚĆ
 binary_sensor:
@@ -296,7 +315,7 @@ binary_sensor:
     - delayed_on: 30ms
     on_press:
        then:
-        - light.toggle: LED_RGB1
+        - light.toggle: LED_1
   - platform: gpio
     name: "INPUT-02"
     id: input_02
@@ -311,7 +330,7 @@ binary_sensor:
     - delayed_on: 30ms
     on_press:
        then:
-        - light.toggle: LED_RGB2
+        - light.toggle: LED_2
   - platform: gpio
     name: "INPUT-03"
     id: input_03
@@ -326,7 +345,7 @@ binary_sensor:
     - delayed_on: 30ms
     on_press:
        then:
-        - light.toggle: LED_RGB3
+        - light.toggle: LED_3
   - platform: gpio
     name: "INPUT-04"
     id: input_04
@@ -341,7 +360,7 @@ binary_sensor:
     - delayed_on: 30ms
     on_press:
        then:
-        - light.toggle: LED_RGB4
+        - light.toggle: LED_4
   - platform: gpio
     name: "INPUT-05"
     id: input_05
@@ -356,7 +375,7 @@ binary_sensor:
     - delayed_on: 30ms
     on_press:
        then:
-        - light.toggle: LED_RGB5
+        - light.toggle: LED_5
   - platform: gpio
     name: "INPUT-06"
     id: input_06
@@ -371,7 +390,7 @@ binary_sensor:
     - delayed_on: 30ms
     on_press:
        then:
-        - light.toggle: LED_RGB6
+        - light.toggle: LED_6
   - platform: gpio
     name: "INPUT-07"
     id: input_07
@@ -386,7 +405,7 @@ binary_sensor:
     - delayed_on: 30ms
     on_press:
        then:
-        - light.toggle: LED_RGB7
+        - light.toggle: LED_7
   - platform: gpio
     name: "INPUT-08"
     id: input_08
@@ -401,7 +420,7 @@ binary_sensor:
     - delayed_on: 30ms
     on_press:
        then:
-        - light.toggle: LED_RGB8
+        - light.toggle: LED_8
   - platform: gpio
     name: "INPUT-09"
     id: input_09
@@ -416,7 +435,7 @@ binary_sensor:
     - delayed_on: 30ms
     on_press:
        then:
-        - light.toggle: LED_RGB9
+        - light.toggle: LED_9
   - platform: gpio
     name: "INPUT-10"
     id: input_10
@@ -431,7 +450,7 @@ binary_sensor:
     - delayed_on: 30ms
     on_press:
        then:
-        - light.toggle: LED_RGB10
+        - light.toggle: LED_10
   - platform: gpio
     name: "INPUT-11"
     id: input_11
@@ -446,7 +465,7 @@ binary_sensor:
     - delayed_on: 30ms
     on_press:
        then:
-        - light.toggle: LED_RGB11
+        - light.toggle: LED_11
   - platform: gpio
     name: "INPUT-12"
     id: input_12
@@ -461,7 +480,7 @@ binary_sensor:
     - delayed_on: 30ms
     on_press:
        then:
-        - light.toggle: LED_RGB12
+        - light.toggle: LED_12
   - platform: gpio
     name: "INPUT-13"
     id: input_13
@@ -476,7 +495,7 @@ binary_sensor:
     - delayed_on: 30ms
     on_press:
        then:
-        - light.toggle: LED_RGB13
+        - light.toggle: LED_13
   - platform: gpio
     name: "INPUT-14"
     id: input_14
@@ -491,7 +510,7 @@ binary_sensor:
     - delayed_on: 30ms
     on_press:
        then:
-        - light.toggle: LED_RGB14
+        - light.toggle: LED_14
   - platform: gpio
     name: "INPUT-15"
     id: input_15
@@ -506,7 +525,7 @@ binary_sensor:
     - delayed_on: 30ms
     on_press:
        then:
-        - light.toggle: LED_RGB15
+        - light.toggle: LED_15
   - platform: gpio
     name: "INPUT-16"
     id: input_16
@@ -521,7 +540,7 @@ binary_sensor:
     - delayed_on: 30ms
     on_press:
        then:
-        - light.toggle: LED_RGB16
+        - light.toggle: LED_16
 
 output:
   - platform: pca9685
@@ -641,145 +660,145 @@ output:
 light:
   - platform: monochromatic
     name: "LEDY1"
-    id: LED_RGB1
+    id: LED_1
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm01
   - platform: monochromatic
     name: "LEDY2"
-    id: LED_RGB2
+    id: LED_2
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm02
   - platform: monochromatic
     name: "LEDY3"
-    id: LED_RGB3
+    id: LED_3
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm03
   - platform: monochromatic
     name: "LEDY4"
-    id: LED_RGB4
+    id: LED_4
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm04
   - platform: monochromatic
     name: "LEDY5"
-    id: LED_RGB5
+    id: LED_5
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm05
   - platform: monochromatic
     name: "LEDY6"
-    id: LED_RGB6
+    id: LED_6
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm06
   - platform: monochromatic
     name: "LEDY7"
-    id: LED_RGB7
+    id: LED_7
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm07
   - platform: monochromatic
     name: "LEDY8"
-    id: LED_RGB8
+    id: LED_8
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm08
   - platform: monochromatic
     name: "LEDY9"
-    id: LED_RGB9
+    id: LED_9
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm09
   - platform: monochromatic
     name: "LEDY10"
-    id: LED_RGB10
+    id: LED_10
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm10
   - platform: monochromatic
     name: "LEDY11"
-    id: LED_RGB11
+    id: LED_11
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm11
   - platform: monochromatic
     name: "LEDY12"
-    id: LED_RGB12
+    id: LED_12
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm12
   - platform: monochromatic
     name: "LEDY13"
-    id: LED_RGB13
+    id: LED_13
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm13
   - platform: monochromatic
     name: "LEDY14"
-    id: LED_RGB14
+    id: LED_14
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm14
   - platform: monochromatic
     name: "LEDY15"
-    id: LED_RGB15
+    id: LED_15
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm15
   - platform: monochromatic
     name: "LEDY16"
-    id: LED_RGB16
+    id: LED_16
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm16
   - platform: monochromatic
     name: "LEDY17"
-    id: LED_RGB17
+    id: LED_17
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm17
   - platform: monochromatic
     name: "LEDY18"
-    id: LED_RGB18
+    id: LED_18
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm18
   - platform: monochromatic
     name: "LEDY19"
-    id: LED_RGB19
+    id: LED_19
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm19
   - platform: monochromatic
     name: "LEDY20"
-    id: LED_RGB20
+    id: LED_20
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm20
   - platform: monochromatic
     name: "LEDY21"
-    id: LED_RGB21
+    id: LED_21
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm21
   - platform: monochromatic
     name: "LEDY22"
-    id: LED_RGB22
+    id: LED_22
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm22
   - platform: monochromatic
     name: "LEDY23"
-    id: LED_RGB23
+    id: LED_23
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm23
   - platform: monochromatic
     name: "LEDY24"
-    id: LED_RGB24
+    id: LED_24
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm24
@@ -787,38 +806,40 @@ light:
   ## 4 DODATKOWE WYJŚCIA PWM ALE TYLKO CYFROWE DO 3.3V
   - platform: monochromatic
     name: "DODATKOWE 25"
-    id: LED_RGB25
+    id: LED_25
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm25
   - platform: monochromatic
     name: "DODATKOWE 26"
-    id: LED_RGB26
+    id: LED_26
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm26
   - platform: monochromatic
     name: "DODATKOWE 27"
-    id: LED_RGB27
+    id: LED_27
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm27
   - platform: monochromatic
     name: "DODATKOWE 28"
-    id: LED_RGB28
+    id: LED_28
     restore_mode: ALWAYS_OFF
     default_transition_length: 1s
     output: pwm28
 
-# AKTYWACJA WEB SERWERA
+# WEB SERWER / SERWER WWW
 web_server:
-  port: 80  
+  port: 80
+  id: com_web_server
 
-# USTAWIENIA ELEMENTÓW TEKSTOWYCH
+
+# TEXT / USTAWIENIA TEXT
 text_sensor:
   - platform: template
     name: "ESP32-M03 Uptime"
-    id: uptime_human_M03
+    id: uptime_human
     icon: mdi:clock-start
   - platform: template
     name: "IP"
@@ -828,40 +849,56 @@ text_sensor:
     lambda: return { id(eth).get_ip_addresses()[0].str() };
     update_interval: 10s
 
-#USTAWENIA CZCIONEK
+# FONT / CZCIONKI
 font:
-- file: 'arial.ttf'
-  id: font1
-  size: 12
+  - file: "gfonts://Roboto"
+    id: text_font
+    size: 12
 
-- file: 'materialdesignicons-webfont.ttf'
-  id: materialdesignicons
-  size: 15
-  glyphs: [
-      "\U000F0317", # lan
-      "\U000F04A2", # signal
-      "\U000F05A9", # wifi
-      "\U000F048B", # server
-      "\U000F0FA9", # clock
-      "\U000F050F" # thermometer
-      ]
+  - file: "gfonts://Material+Symbols+Outlined"
+    id: icons
+    size: 15
+    glyphs: [
+      "\U0000eb2f", # lan
+      "\U0000e875", # server
+      "\U0000e8b5", # clock
+      "\U0000e1ff" # thermometer
+    ]
 
-# USTAWIENIA EKRANU
+  - file: "gfonts://Material+Symbols+Outlined"
+    id: icons_big
+    size: 30
+    glyphs: [
+      "\U0000e1ff" # thermometer
+    ]
+
 display:
   - platform: ssd1306_i2c
-    i2c_id: bus_a
+    i2c_id: com_i2c_bus_a
     model: "SSD1306_128X64"
-    lambda: |-
-      int seconds = round(id(upt_M03).state);
-      int days = seconds / (24 * 3600);
-      seconds = seconds % (24 * 3600);
-      int hours = seconds / 3600;
-      it.print(0, 0, id(materialdesignicons), TextAlign::LEFT, "\U000F0317");
-      it.printf(18, 1,id(font1), "%s", id(ip_address).state.c_str());
-      it.print(0, 16, id(materialdesignicons), TextAlign::LEFT, "\U000F0FA9");
-      it.printf(18,17,id(font1),"%d dni, %02d godzin",days,hours);
-      it.print(0, 32, id(materialdesignicons), TextAlign::LEFT, "\U000F048B");
-      it.printf(18, 33, id(font1), "SM-LITE-1624D"); 
-      it.print(0, 48, id(materialdesignicons), TextAlign::LEFT, "\U000F050F");
-      it.printf(18, 49, id(font1), "%.1f°, %.1f°", id(temp_1).state, id(temp_2).state); 
-      
+    id: oled_display
+    pages:
+      - id: page1
+        lambda: |-
+          it.printf(32, 5, id(text_font), "SMARTBOB");
+          it.printf(27, 22, id(text_font), "AUTOMATYKA");  
+          it.printf(5, 39, id(text_font), "WWW.SMARTBOB.PL");
+      - id: page2
+        lambda: |-
+          int seconds = round(id(upt_time_text).state);
+          int days = seconds / (24 * 3600);
+          seconds = seconds % (24 * 3600);
+          int hours = seconds / 3600;
+          it.print(0, 0, id(icons), TextAlign::LEFT, "\U0000eb2f");
+          it.printf(18, 1,id(text_font), "%s", id(ip_address).state.c_str());
+          it.print(0, 16, id(icons), TextAlign::LEFT, "\U0000e8b5");
+          it.printf(18,17,id(text_font),"%d dni, %02d godzin",days,hours);
+          it.print(0, 32, id(icons), TextAlign::LEFT, "\U0000e875");
+          it.printf(18, 33, id(text_font), "SM-LITE-1624D"); 
+          it.print(0, 48, id(icons), TextAlign::LEFT, "\U0000e1ff");
+          it.printf(18, 49, id(text_font), "%.1f°, %.1f°", id(sensor_pcb_temp_1).state, id(sensor_pcb_temp_2).state);
+      - id: page3
+        lambda: |-
+          it.printf(33, 5, id(text_font), "OVERHEAT"); 
+          it.print(50, 20, id(icons_big), TextAlign::LEFT, "\U0000e1ff");
+          it.printf(33, 52, id(text_font), "%.1f°, %.1f°", id(sensor_pcb_temp_1).state, id(sensor_pcb_temp_2).state);
