@@ -1,7 +1,7 @@
 # NAME / NAZWA
 substitutions:
-  name: sm-lite-1616r-v15
-  friendly_name: sm-lite-1616r-v15
+  name: sm-lite-1624r-v14
+  friendly_name: sm-lite-1624r-v14
 
 # DATA
 esphome:
