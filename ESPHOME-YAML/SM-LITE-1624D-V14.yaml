@@ -20,16 +20,18 @@ esphome:
   # ADD MAC NUMBER TO NAME / DODAWANIE ADRESU MAC DO NAZWY
   name_add_mac_suffix: false
 
-# KLUCZ HA - USTAW SWÓJ
+# HA CODE / KLUCZ HA DODAJ SWÓJ WŁASNY WYGENROWANY Z HA DLA ESP32
 api:
-  encryption:
-    key: "98MUt/upiZL3PhfR1Ynu7ji8EHjd8tuvR8zOAS2/RDI="
+  #encryption:
+    #key: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  id: com_ha_api
   reboot_timeout: 0s
 
-# KLUCZ OTA - USTAW SWÓJ
+# OTA CODE / KLUCZ OTA DODAJ SWÓJ WŁASNY WYGENROWANY Z HA DLA ESP32
 ota:
   - platform: esphome
-    password: "6d492e327cf49782cc7de2da362196dc"
+    id: update_ota
+  #password: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 # RODZAJ PROCESORA
 esp32:
