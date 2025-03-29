@@ -47,8 +47,31 @@ logger:
 uart:
   rx_pin: 13
   tx_pin: 33
-  baud_rate: 2400
+  baud_rate: 9600
   stop_bits: 1
+  data_bits: 8
+  parity: NONE
+  debug:
+    direction: BOTH
+
+# 1WIRE
+one_wire:
+  - platform: gpio
+    id: com_one_wire
+    pin: GPIO14
+
+# KONFIGURACJA I2C
+i2c:
+   - id: com_i2c_bus_a
+     sda: 5
+     scl: 15
+     scan: true
+     frequency: 400kHz
+   - id: com_i2c_bus_b
+     sda: 16
+     scl: 32
+     scan: true
+     frequency: 400kHz
 
 # KONFIGURACJA CZUJNIKÓW I PERYFERIÓW
 sensor:
@@ -203,9 +226,6 @@ sensor:
     id: upt_time_text
     internal: true
 
-# KOFNIFGURACJA 1WIRE
-#dallas:
-#  - pin: GPIO3
 
 # TIME CONFIGURATION / KONFIGRUACJA ZEGARA CZASU RZECZYWISTEGO
 time:
@@ -247,20 +267,6 @@ ethernet:
     #subnet: 255.255.255.0
     #dns1 : 8.8.8.8
     #dns2 : 8.8.4.4
-
-
-# KONFIGURACJA I2C 
-i2c:
-   - id: com_i2c_bus_a
-     sda: 5
-     scl: 15
-     scan: true
-     frequency: 400kHz
-   - id: com_i2c_bus_b
-     sda: 32
-     scl: 16
-     scan: true
-     frequency: 400kHz
 
 # KONFIGURACJA MCP23017
 mcp23017:
