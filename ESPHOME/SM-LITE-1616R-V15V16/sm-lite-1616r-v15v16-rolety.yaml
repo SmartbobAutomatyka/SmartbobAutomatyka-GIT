@@ -1,0 +1,1176 @@
+# HA
+api:
+  encryption:
+    key: "98MUt/upiZL3PhfR1Ynu7ji8EHjd8tuvR8zOAS2/RDI="
+  reboot_timeout: 0s
+
+# OTA
+ota:
+  - platform: esphome
+  #password: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# NAME / NAZWA
+substitutions:
+  name: sm-lite-1616r-v15-rolety
+  friendly_name: sm-lite-1616r-v15-rolety
+
+# ZMIENNE POMOCNICZE
+globals:
+  - id: virtual_input_close_all
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+  - id: virtual_input_open_all
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+
+
+# DATA
+esphome:
+  name: ${name}
+  comment: ${friendly_name}
+  project:
+    name: "smartbob.sm-lite-1616r"
+    version: "1.0.0"
+  on_boot:
+    then:
+      - display.page.show: page1
+      - delay: 7s
+      - display.page.show: page2
+  # ADD MAC NUMBER TO NAME / DODAWANIE ADRESU MAC DO NAZWY
+  name_add_mac_suffix: false
+
+# PROCESOR
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# LOGING LEVEL / LOGOWANIE
+#logger:
+#  level: DEBUG
+
+# 1WIRE
+one_wire:
+  - platform: gpio
+    id: com_one_wire
+    pin: GPIO32
+
+# UART-RS485
+uart:
+  - id: com_uart
+    rx_pin: 13
+    tx_pin: 33
+    baud_rate: 9600
+    stop_bits: 1
+    data_bits: 8
+    parity: NONE
+    debug:
+      direction: BOTH
+
+# LAN OR WIFI
+##### WIFI SECTION / KONFIGURACJA WIFI
+
+# Improv via Serial / Automatyczna konfiguracja za pomoca kabla USB przez https://www.improv-wifi.com/
+# improv_serial:
+
+## SETUP WIFI AS CLIENT MODE / USTAW WIFI JAKO KLIENTA
+#wifi:
+  #id: eth
+  #ssid: "MY_WIFI_SSID"
+  #password: "MY_WIFI_PASS"
+
+## SETUP WIFI AS ACCESS POINT / USTAW WIFI W TRYB PRACY ACCESS POINT
+  #ap:
+  #  password: "MY_WIFI_PASS"
+
+#### WIFI END
+##### LAN SECTION/ KONFIGURACJA LAN
+ethernet:
+  type: LAN8720
+  mdc_pin: GPIO23
+  mdio_pin: GPIO18
+  clk_mode: GPIO17_OUT
+  phy_addr: 1
+  id: eth
+
+  #manual_ip:
+  #  static_ip: 192.168.0.50
+  #  gateway: 192.168.0.1
+  #  subnet: 255.255.255.0
+  #  dns1 : 8.8.8.8
+  #  dns2 : 8.8.4.4
+
+#### LAN END
+
+# SENSOR CONFIGURATION / KONFIGURACJA CZUJNIKÓW
+sensor:
+  #- platform: dallas_temp
+  #  id: sensor_1wire
+  #  name: "Temperatura DS18B20"
+  #  update_interval: 10s
+
+  # SCT SENSOR / KONFIGURACJA PRZEKŁADNIKA SCT
+  #- platform: ct_clamp
+  #  id: sensor_ct_clamp
+  #  sensor: sensor_adc_ct
+  #  name: "SCT Current"
+  #  update_interval: 1s
+  #  filters:
+  #    - calibrate_linear:
+  #        - 0 -> 0
+  #        - 0.1 -> 2.5
+
+  # SCT ADC / KANAŁ POMIARU SCT
+  #- platform: adc
+  #  pin: GPIO39
+  #  id: sensor_adc_ct
+  #  attenuation: 11db
+
+  # EXT ADC INPUT 2 / KANAŁ POMIARU NAPIĘCIA 2
+  - platform: adc
+    pin: GPIO34
+    id: sensor_adc_ext_2
+    attenuation: 11db
+    name: "Voltage ADC 2"
+    device_class: "voltage"
+    filters:
+      - calibrate_linear:
+          - 0.62 -> 5
+          - 1.22 -> 10
+          - 1.83 -> 15
+          - 2.425 -> 20
+          - 2.975 -> 25
+    update_interval: 1s
+
+  # EXT ADC INPUT 1 / KANAŁ POMIARU NAPIĘCIA 1
+  - platform: adc
+    pin: GPIO35
+    id: sensor_adc_ext_1
+    attenuation: 11db
+    name: "Voltage ADC 1"
+    device_class: "voltage"
+    filters:
+      - calibrate_linear:
+          - 0.62 -> 5
+          - 1.22 -> 10
+          - 1.83 -> 15
+          - 2.425 -> 20
+          - 2.975 -> 25
+    update_interval: 1s
+
+  # ADC INPUT VOLTAGE CHANNEL / KANAŁ POMIARU NAPIĘCIA ZASILANIA
+  - platform: adc
+    pin: GPIO36
+    id: sensor_adc_power_supply
+    attenuation: 11db
+    name: "Power voltage"
+    device_class: "voltage"
+    filters:
+      - calibrate_linear:
+          - 0.55 -> 10
+          - 0.825 -> 15
+          - 1.10 -> 20
+          - 1.37 -> 25
+    update_interval: 1s
+
+  # TMP102 OVER TEMP CONFIGURATION 1 / KONFIGURACJA ZACHOWANIA PO PRZEKROCZENIU TEMPERATURY CZUJNIK 1
+  - platform: tmp102
+    i2c_id: com_i2c_bus_a
+    name: "Temperatura PCB 1"
+    address: 0x48
+    id: sensor_pcb_temp_1
+    update_interval: 8s
+    on_value:
+      if:
+        condition:
+          sensor.in_range:
+            id: sensor_pcb_temp_1
+            above: 70.0
+        then:
+          - display.page.show: page3
+          - output.turn_off: relay_01
+          - output.turn_off: relay_02
+          - output.turn_off: relay_03
+          - output.turn_off: relay_04
+          - output.turn_off: relay_05
+          - output.turn_off: relay_06
+          - output.turn_off: relay_07
+          - output.turn_off: relay_08
+          - output.turn_off: relay_09
+          - output.turn_off: relay_10
+          - output.turn_off: relay_11
+          - output.turn_off: relay_12
+          - output.turn_off: relay_13
+          - output.turn_off: relay_14
+          - output.turn_off: relay_15
+          - output.turn_off: relay_16
+
+  # TMP102 OVER TEMP CONFIGURATION 2 / KONFIGURACJA ZACHOWANIA PO PRZEKROCZENIU TEMPERATURY CZUJNIK 2
+  - platform: tmp102
+    i2c_id: com_i2c_bus_a
+    name: "Temperatura PCB 2"
+    address: 0x49
+    id: sensor_pcb_temp_2
+    update_interval: 8s
+    on_value:
+      if:
+        condition:
+          sensor.in_range:
+            id: sensor_pcb_temp_2
+            above: 70.0
+        then:
+          - display.page.show: page3
+          - output.turn_off: relay_01
+          - output.turn_off: relay_02
+          - output.turn_off: relay_03
+          - output.turn_off: relay_04
+          - output.turn_off: relay_05
+          - output.turn_off: relay_06
+          - output.turn_off: relay_07
+          - output.turn_off: relay_08
+          - output.turn_off: relay_09
+          - output.turn_off: relay_10
+          - output.turn_off: relay_11
+          - output.turn_off: relay_12
+          - output.turn_off: relay_13
+          - output.turn_off: relay_14
+          - output.turn_off: relay_15
+          - output.turn_off: relay_16
+
+  # TIME / CZAS
+  - platform: uptime
+    name: Uptime Sensor
+    id: sensor_uptime
+    internal: true
+    update_interval: 60s
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human
+            state: !lambda |-
+              int seconds = round(id(sensor_uptime).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? to_string(days) + "d " : "") +
+                (hours ? to_string(hours) + "h " : "") +
+                (minutes ? to_string(minutes) + "m " : "") +
+                (to_string(seconds) + "s")
+              ).c_str();
+
+  # UPTIME ON HA/ CZAS ŻYCIA HA
+  - platform: uptime
+    name: "Time text on HA"
+    id: upt_time_text
+    internal: true
+
+# TIME CONFIGURATION / KONFIGRUACJA ZEGARA CZASU RZECZYWISTEGO
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+  - platform: sntp
+    id: sntp_time
+    timezone: Europe/Sofia
+    servers:
+      - 0.pool.ntp.org
+      - 1.pool.ntp.org
+      - 2.pool.ntp.org
+
+# I2C DATA LINE CONFIGURATION / KONFIGURACJA MAGISTRALI I2C
+i2c:
+  - id: com_i2c_bus_a
+    sda: 15
+    scl: 5
+    scan: true
+    frequency: 400kHz
+  - id: com_i2c_bus_b
+    sda: 16
+    scl: 14
+    scan: true
+    frequency: 400kHz
+
+# MCP23017 EXPANDERS IN AND OUT / KONFIGRUACJA EKSPANDERÓW WEJŚĆ I WYJŚĆ
+mcp23017:
+  - id: 'mcp23017_hub_2'
+    address: 0x20
+    i2c_id: com_i2c_bus_a
+  - id: 'mcp23017_hub_1'
+    address: 0x21
+    i2c_id: com_i2c_bus_a
+
+# ROLETY KONFIGURACJA
+cover:
+  - platform: time_based
+    name: 'Roleta 1'
+    id: cover_01
+    open_action:
+      - output.turn_off: relay_01
+      - delay: 0.1s
+      - output.turn_on: relay_02
+    open_duration: 100s
+    close_action:
+      - output.turn_off: relay_02
+      - delay: 0.1s
+      - output.turn_on: relay_01
+    close_duration: 100s
+    stop_action:
+      - output.turn_off: relay_01
+      - output.turn_off: relay_02
+
+  - platform: time_based
+    name: 'Roleta 2'
+    id: cover_02
+    open_action:
+      - output.turn_off: relay_03
+      - delay: 0.1s
+      - output.turn_on: relay_04
+    open_duration: 100s
+    close_action:
+      - output.turn_off: relay_04
+      - delay: 0.1s
+      - output.turn_on: relay_03
+    close_duration: 100s
+    stop_action:
+      - output.turn_off: relay_04
+      - output.turn_off: relay_03
+
+  - platform: time_based
+    name: 'Roleta 3'
+    id: cover_03
+    open_action:
+      - output.turn_off: relay_05
+      - delay: 0.1s
+      - output.turn_on: relay_06
+    open_duration: 100s
+    close_action:
+      - output.turn_off: relay_06
+      - delay: 0.1s
+      - output.turn_on: relay_05
+    close_duration: 100s
+    stop_action:
+      - output.turn_off: relay_06
+      - output.turn_off: relay_05
+  
+  - platform: time_based
+    name: 'Roleta 4'
+    id: cover_04
+    open_action:
+      - output.turn_off: relay_07
+      - delay: 0.1s
+      - output.turn_on: relay_08
+    open_duration: 100s
+    close_action:
+      - output.turn_off: relay_08
+      - delay: 0.1s
+      - output.turn_on: relay_07
+    close_duration: 100s
+    stop_action:
+      - output.turn_off: relay_08
+      - output.turn_off: relay_07
+
+  - platform: time_based
+    name: 'Roleta 5'
+    id: cover_05
+    open_action:
+      - output.turn_off: relay_09
+      - delay: 0.1s
+      - output.turn_on: relay_10
+    open_duration: 100s
+    close_action:
+      - output.turn_off: relay_10
+      - delay: 0.1s
+      - output.turn_on: relay_09
+    close_duration: 100s
+    stop_action:
+      - output.turn_off: relay_09
+      - output.turn_off: relay_10
+
+  - platform: time_based
+    name: 'Roleta 6'
+    id: cover_06
+    open_action:
+      - output.turn_off: relay_11
+      - delay: 0.1s
+      - output.turn_on: relay_12
+    open_duration: 100s
+    close_action:
+      - output.turn_off: relay_12
+      - delay: 0.1s
+      - output.turn_on: relay_11
+    close_duration: 100s
+    stop_action:
+      - output.turn_off: relay_11
+      - output.turn_off: relay_12
+
+  - platform: time_based
+    name: 'Roleta 7'
+    id: cover_07
+    open_action:
+      - output.turn_off: relay_13
+      - delay: 0.1s
+      - output.turn_on: relay_14
+    open_duration: 100s
+    close_action:
+      - output.turn_off: relay_14
+      - delay: 0.1s
+      - output.turn_on: relay_13
+    close_duration: 100s
+    stop_action:
+      - output.turn_off: relay_13
+      - output.turn_off: relay_14
+  
+  - platform: time_based
+    name: 'Roleta 8'
+    id: cover_08
+    open_action:
+      - output.turn_off: relay_15
+      - delay: 0.1s
+      - output.turn_on: relay_16
+    open_duration: 100s
+    close_action:
+      - output.turn_off: relay_16
+      - delay: 0.1s
+      - output.turn_on: relay_15
+    close_duration: 100s
+    stop_action:
+      - output.turn_off: relay_15
+      - output.turn_off: relay_16
+
+# OUTPUTS / WYJŚCIA
+output:
+  - platform: gpio
+    id: relay_01
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 8
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    id: relay_02
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 9
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    id: relay_03
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 10
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    id: relay_04
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 11
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    id: relay_05
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 12
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    id: relay_06
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 13
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    id: relay_07
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 14
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    id: relay_08
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 15
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    id: relay_09
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 2
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    id: relay_10
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 3
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    id: relay_11
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 4
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    id: relay_12
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 5
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    id: relay_13
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 6
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    id: relay_14
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 7
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    id: relay_15
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 1
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    id: relay_16
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 0
+      mode: OUTPUT
+      inverted: false
+
+# INPUTS / WEJŚCIA
+binary_sensor:
+  - platform: gpio
+    name: "INPUT-01"
+    id: input_01
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 4
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 10ms
+    on_multi_click:
+      - timing:
+          - ON for at least 4s
+        then:
+          - script.execute: trigger_virtual_open_all
+      - timing:
+          - ON for 0.1s to 2s
+          - OFF for at least 0.1s
+        then:
+          - lambda: !lambda |-
+              if (id(cover_01).current_operation == CoverOperation::COVER_OPERATION_IDLE) {
+              auto call = id(cover_01).make_call();
+              call.set_command_open();
+              call.perform();
+              } else {
+              auto call = id(cover_01).make_call();
+              call.set_command_stop();
+              call.perform();
+              } 
+
+  - platform: gpio
+    name: "INPUT-02"
+    id: input_02
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 5
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 10ms
+    on_multi_click:
+      - timing:
+          - ON for at least 4s
+        then:
+          - script.execute: trigger_virtual_close_all
+      - timing:
+          - ON for 0.1s to 2s
+          - OFF for at least 0.1s
+        then:
+          - lambda: !lambda |-
+              if (id(cover_01).current_operation == CoverOperation::COVER_OPERATION_IDLE) {
+              auto call = id(cover_01).make_call();
+              call.set_command_close();
+              call.perform();
+              } else {
+              auto call = id(cover_01).make_call();
+              call.set_command_stop();
+              call.perform();
+              }
+
+  - platform: gpio
+    name: "INPUT-03"
+    id: input_03
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 6
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 10ms
+    on_multi_click:
+      - timing:
+          - ON for at least 4s
+        then:
+          - script.execute: trigger_virtual_open_all
+      - timing:
+          - ON for 0.1s to 2s
+          - OFF for at least 0.1s
+        then:
+          - lambda: !lambda |-
+              if (id(cover_02).current_operation == CoverOperation::COVER_OPERATION_IDLE) {
+              auto call = id(cover_02).make_call();
+              call.set_command_open();
+              call.perform();
+              } else {
+              auto call = id(cover_02).make_call();
+              call.set_command_stop();
+              call.perform();
+              } 
+
+
+  - platform: gpio
+    name: "INPUT-04"
+    id: input_04
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 7
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 10ms
+    on_multi_click:
+      - timing:
+          - ON for at least 4s
+        then:
+          - script.execute: trigger_virtual_close_all
+      - timing:
+          - ON for 0.1s to 2s
+          - OFF for at least 0.1s
+        then:
+          - lambda: !lambda |-
+              if (id(cover_02).current_operation == CoverOperation::COVER_OPERATION_IDLE) {
+              auto call = id(cover_02).make_call();
+              call.set_command_close();
+              call.perform();
+              } else {
+              auto call = id(cover_02).make_call();
+              call.set_command_stop();
+              call.perform();
+              }
+
+  - platform: gpio
+    name: "INPUT-05"
+    id: input_05
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 3
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 10ms
+    on_multi_click:
+      - timing:
+          - ON for at least 4s
+        then:
+          - script.execute: trigger_virtual_open_all
+      - timing:
+          - ON for 0.1s to 2s
+          - OFF for at least 0.1s
+        then:
+          - lambda: !lambda |-
+              if (id(cover_03).current_operation == CoverOperation::COVER_OPERATION_IDLE) {
+              auto call = id(cover_03).make_call();
+              call.set_command_open();
+              call.perform();
+              } else {
+              auto call = id(cover_03).make_call();
+              call.set_command_stop();
+              call.perform();
+              }
+
+  - platform: gpio
+    name: "INPUT-06"
+    id: input_06
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 2
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 10ms
+    on_multi_click:
+      - timing:
+          - ON for at least 4s
+        then:
+          - script.execute: trigger_virtual_close_all
+      - timing:
+          - ON for 0.1s to 2s
+          - OFF for at least 0.1s
+        then:
+          - lambda: !lambda |-
+              if (id(cover_03).current_operation == CoverOperation::COVER_OPERATION_IDLE) {
+              auto call = id(cover_03).make_call();
+              call.set_command_close();
+              call.perform();
+              } else {
+              auto call = id(cover_03).make_call();
+              call.set_command_stop();
+              call.perform();
+              }
+
+  - platform: gpio
+    name: "INPUT-07"
+    id: input_07
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 1
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 10ms
+    on_multi_click:
+      - timing:
+          - ON for at least 4s
+        then:
+          - script.execute: trigger_virtual_open_all
+      - timing:
+          - ON for 0.1s to 2s
+          - OFF for at least 0.1s
+        then:
+          - lambda: !lambda |-
+              if (id(cover_04).current_operation == CoverOperation::COVER_OPERATION_IDLE) {
+              auto call = id(cover_04).make_call();
+              call.set_command_open();
+              call.perform();
+              } else {
+              auto call = id(cover_04).make_call();
+              call.set_command_stop();
+              call.perform();
+              }
+
+  - platform: gpio
+    name: "INPUT-08"
+    id: input_08
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 0
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 10ms
+    on_multi_click:
+      - timing:
+          - ON for at least 4s
+        then:
+          - script.execute: trigger_virtual_close_all
+      - timing:
+          - ON for 0.1s to 2s
+          - OFF for at least 0.1s
+        then:
+          - lambda: !lambda |-
+              if (id(cover_04).current_operation == CoverOperation::COVER_OPERATION_IDLE) {
+              auto call = id(cover_04).make_call();
+              call.set_command_close();
+              call.perform();
+              } else {
+              auto call = id(cover_04).make_call();
+              call.set_command_stop();
+              call.perform();
+              }
+
+  - platform: gpio
+    name: "INPUT-09"
+    id: input_09
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 15
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 10ms
+    on_multi_click:
+      - timing:
+          - ON for at least 4s
+        then:
+          - script.execute: trigger_virtual_open_all
+      - timing:
+          - ON for 0.1s to 2s
+          - OFF for at least 0.1s
+        then:
+          - lambda: !lambda |-
+              if (id(cover_05).current_operation == CoverOperation::COVER_OPERATION_IDLE) {
+              auto call = id(cover_05).make_call();
+              call.set_command_open();
+              call.perform();
+              } else {
+              auto call = id(cover_05).make_call();
+              call.set_command_stop();
+              call.perform();
+              }
+
+  - platform: gpio
+    name: "INPUT-10"
+    id: input_10
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 14
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 10ms
+    on_multi_click:
+      - timing:
+          - ON for at least 4s
+        then:
+          - script.execute: trigger_virtual_close_all
+      - timing:
+          - ON for 0.1s to 2s
+          - OFF for at least 0.1s
+        then:
+          - lambda: !lambda |-
+              if (id(cover_05).current_operation == CoverOperation::COVER_OPERATION_IDLE) {
+              auto call = id(cover_05).make_call();
+              call.set_command_close();
+              call.perform();
+              } else {
+              auto call = id(cover_05).make_call();
+              call.set_command_stop();
+              call.perform();
+              }
+
+  - platform: gpio
+    name: "INPUT-11"
+    id: input_11
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 13
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 10ms
+    on_multi_click:
+      - timing:
+          - ON for at least 4s
+        then:
+          - script.execute: trigger_virtual_open_all
+      - timing:
+          - ON for 0.1s to 2s
+          - OFF for at least 0.1s
+        then:
+          - lambda: !lambda |-
+              if (id(cover_06).current_operation == CoverOperation::COVER_OPERATION_IDLE) {
+              auto call = id(cover_06).make_call();
+              call.set_command_open();
+              call.perform();
+              } else {
+              auto call = id(cover_06).make_call();
+              call.set_command_stop();
+              call.perform();
+              }
+
+  - platform: gpio
+    name: "INPUT-12"
+    id: input_12
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 12
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 10ms
+    on_multi_click:
+      - timing:
+          - ON for at least 4s
+        then:
+          - script.execute: trigger_virtual_close_all
+      - timing:
+          - ON for 0.1s to 2s
+          - OFF for at least 0.1s
+        then:
+          - lambda: !lambda |-
+              if (id(cover_06).current_operation == CoverOperation::COVER_OPERATION_IDLE) {
+              auto call = id(cover_06).make_call();
+              call.set_command_close();
+              call.perform();
+              } else {
+              auto call = id(cover_06).make_call();
+              call.set_command_stop();
+              call.perform();
+              }
+
+  - platform: gpio
+    name: "INPUT-13"
+    id: input_13
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 11
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 10ms
+    on_multi_click:
+      - timing:
+          - ON for at least 4s
+        then:
+          - script.execute: trigger_virtual_open_all
+      - timing:
+          - ON for 0.1s to 2s
+          - OFF for at least 0.1s
+        then:
+          - lambda: !lambda |-
+              if (id(cover_07).current_operation == CoverOperation::COVER_OPERATION_IDLE) {
+              auto call = id(cover_07).make_call();
+              call.set_command_open();
+              call.perform();
+              } else {
+              auto call = id(cover_07).make_call();
+              call.set_command_stop();
+              call.perform();
+              }
+
+  - platform: gpio
+    name: "INPUT-14"
+    id: input_14
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 10
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 10ms
+    on_multi_click:
+      - timing:
+          - ON for at least 4s
+        then:
+          - script.execute: trigger_virtual_close_all
+      - timing:
+          - ON for 0.1s to 2s
+          - OFF for at least 0.1s
+        then:
+          - lambda: !lambda |-
+              if (id(cover_07).current_operation == CoverOperation::COVER_OPERATION_IDLE) {
+              auto call = id(cover_07).make_call();
+              call.set_command_close();
+              call.perform();
+              } else {
+              auto call = id(cover_07).make_call();
+              call.set_command_stop();
+              call.perform();
+              }
+
+  - platform: gpio
+    name: "INPUT-15"
+    id: input_15
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 9
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 10ms
+    on_multi_click:
+      - timing:
+          - ON for at least 4s
+        then:
+          - script.execute: trigger_virtual_open_all
+      - timing:
+          - ON for 0.1s to 2s
+          - OFF for at least 0.1s
+        then:
+          - lambda: !lambda |-
+              if (id(cover_08).current_operation == CoverOperation::COVER_OPERATION_IDLE) {
+              auto call = id(cover_08).make_call();
+              call.set_command_open();
+              call.perform();
+              } else {
+              auto call = id(cover_08).make_call();
+              call.set_command_stop();
+              call.perform();
+              }
+
+  - platform: gpio
+    name: "INPUT-16"
+    id: input_16
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 8
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 10ms
+    on_multi_click:
+      - timing:
+          - ON for at least 4s
+        then:
+          - script.execute: trigger_virtual_close_all
+      - timing:
+          - ON for 0.1s to 2s
+          - OFF for at least 0.1s
+        then:
+          - lambda: !lambda |-
+              if (id(cover_08).current_operation == CoverOperation::COVER_OPERATION_IDLE) {
+              auto call = id(cover_08).make_call();
+              call.set_command_close();
+              call.perform();
+              } else {
+              auto call = id(cover_08).make_call();
+              call.set_command_stop();
+              call.perform();
+              }
+  
+  - platform: template
+    name: "Stan zamknij wszystkie"
+    lambda: |-
+      return id(virtual_input_close_all);
+  
+  - platform: template
+    name: "Stan otwórz wszsytkie"
+    lambda: |-
+      return id(virtual_input_open_all);
+
+# SKRYPTY GLOBALNE
+script:
+  - id: trigger_virtual_close_all
+    mode: restart
+    then:
+      - lambda: |-
+          id(virtual_input_close_all) = true;
+      - delay: 1500ms
+      - lambda: |-
+          id(virtual_input_close_all) = false;
+  
+  - id: trigger_virtual_open_all
+    mode: restart
+    then:
+      - lambda: |-
+          id(virtual_input_open_all) = true;
+      - delay: 1500ms
+      - lambda: |-
+          id(virtual_input_open_all) = false;
+
+# WEB SERWER / SERWER WWW
+web_server:
+  port: 80
+  id: com_web_server
+
+# TEXT / USTAWIENIA TEXT
+text_sensor:
+  - platform: template
+    name: "ESP32-M03 Uptime"
+    id: uptime_human
+    icon: mdi:clock-start
+  - platform: template
+    name: "IP"
+    id: ip_address
+    entity_category: diagnostic
+    icon: "mdi:ip-network"
+    lambda: return { id(eth).get_ip_addresses()[0].str() };
+    update_interval: 10s
+
+# FONT / CZCIONKI
+font:
+  - file: "gfonts://Roboto"
+    id: text_font
+    size: 12
+
+  - file: "gfonts://Material+Symbols+Outlined"
+    id: icons
+    size: 15
+    glyphs: [
+      "\U0000eb2f", # lan
+      "\U0000e875", # server
+      "\U0000e8b5", # clock
+      "\U0000e1ff" # thermometer
+    ]
+
+  - file: "gfonts://Material+Symbols+Outlined"
+    id: icons_big
+    size: 30
+    glyphs: [
+      "\U0000e1ff" # thermometer
+    ]
+
+display:
+  - platform: ssd1306_i2c
+    i2c_id: com_i2c_bus_a
+    model: "SSD1306_128X64"
+    id: oled_display
+    pages:
+      - id: page1
+        lambda: |-
+          it.printf(32, 5, id(text_font), "SMARTBOB");
+          it.printf(27, 22, id(text_font), "AUTOMATYKA");  
+          it.printf(5, 39, id(text_font), "WWW.SMARTBOB.PL");
+      - id: page2
+        lambda: |-
+          int seconds = round(id(upt_time_text).state);
+          int days = seconds / (24 * 3600);
+          seconds = seconds % (24 * 3600);
+          int hours = seconds / 3600;
+          it.print(0, 0, id(icons), TextAlign::LEFT, "\U0000eb2f");
+          it.printf(18, 1,id(text_font), "%s", id(ip_address).state.c_str());
+          it.print(0, 16, id(icons), TextAlign::LEFT, "\U0000e8b5");
+          it.printf(18,17,id(text_font),"%d dni, %02d godzin",days,hours);
+          it.print(0, 32, id(icons), TextAlign::LEFT, "\U0000e875");
+          it.printf(18, 33, id(text_font), "SM-LITE-1616R"); 
+          it.print(0, 48, id(icons), TextAlign::LEFT, "\U0000e1ff");
+          it.printf(18, 49, id(text_font), "%.1f°, %.1f°", id(sensor_pcb_temp_1).state, id(sensor_pcb_temp_2).state);
+      - id: page3
+        lambda: |-
+          it.printf(33, 5, id(text_font), "OVERHEAT"); 
+          it.print(50, 20, id(icons_big), TextAlign::LEFT, "\U0000e1ff");
+          it.printf(33, 52, id(text_font), "%.1f°, %.1f°", id(sensor_pcb_temp_1).state, id(sensor_pcb_temp_2).state);
