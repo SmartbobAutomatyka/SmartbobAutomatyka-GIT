@@ -1,0 +1,562 @@
+substitutions:
+  name: smartbob-0808r-1
+  friendly_name: SMARTBOB-0808R-1
+
+# NAZWA STEROWNIKA
+esphome:
+  name: ${name}
+  comment: ${friendly_name}
+  on_boot:
+    then:
+      - display.page.show: page1
+      - delay: 7s
+      - display.page.show: page2
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "j7Gm+thNY1iTNS6Anm6wPy8qB+xAvgfGTe8TKkP6qmc="
+  reboot_timeout: 0s
+
+ota:
+  - platform: esphome
+    password: "a5f7fc0196fcafc14e7f589bd6c6b0f5"
+
+# RODZAJ PROCESORA
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# LOGOWANIE
+#logger:
+#  level: DEBUG
+
+# KOMNUNIKACJA UART-RS485 - USTAW SWOJĄ CZESTOLIWOŚĆ
+uart:
+  - id: mod_uart
+    rx_pin: 13
+    tx_pin: 33
+    baud_rate: 9600
+    stop_bits: 1
+    data_bits: 8
+    parity: NONE
+    debug:
+      direction: BOTH
+
+# KONFIGURACJA 1 WIRE
+#one_wire:
+#  - platform: gpio
+#    pin: GPIO14
+
+# KONFIGURACJA CZUJNIKÓW I PERYFERIÓW
+sensor:
+  #- platform: dallas_temp
+  #  name: "Temperatura DS18B20"
+  #  update_interval: 10s
+
+  #- platform: sdm_meter
+  #  phase_a:
+  #    current:
+  #      name: "SDM120M Prąd"
+  #    voltage:
+  #      name: "SDM120M Napięcie"
+  #    active_power:
+  #      name: "SDM120M Moc czynna"
+  #    power_factor:
+  #      name: "SDM120M Współczynik mocy"
+  #    apparent_power:
+  #      name: "SDM120M Moc pozorna"
+  #    reactive_power:
+  #      name: "SDM120M Moc bierna"
+  #    phase_angle:
+  #      name: "SDM120M Kąt"
+  #  frequency:
+  #    name: "SDM120M Częstotliwość"
+  #  total_power:
+  #    name: "SDM120M Suma kWh"
+  #  update_interval: 10s
+
+  #CZUJNIK NA I2C
+  #- platform: bh1750
+  #  name: "BH1750 Jasność"
+  #  address: 0x23
+  # i2c_id: bus_b
+  #  update_interval: 10s
+
+  # PRZEKŁADNIK PRĄDOWY    
+  #- platform: ct_clamp
+  #  sensor: adc_ct
+  #  name: "Prąd z przekładnika"
+  #  update_interval: 1s
+  #  filters:
+  #    - calibrate_linear:
+  #      - 0 -> 0
+  #      - 0.1 -> 2.5
+
+  # PRZEKŁADNIK PRĄDOWY ADC
+  #- platform: adc
+  #  pin: GPIO36
+  #  id: adc_ct
+  #  attenuation: 11db
+
+  # WEJŚCIE POMIARU NAPIĘCIA DO 20V
+  #- platform: adc
+  #  pin: GPIO34
+  #  id: adc_sensor_2
+  #  attenuation: 11db
+  #  name: "Napięcie ADC 2"
+  #  device_class: "voltage"
+  #  filters:
+  #    - calibrate_linear:
+  #      - 0.62 -> 5
+  #      - 1.22 -> 10
+  #      - 1.83 -> 15
+  #      - 2.425 -> 20
+  #      - 2.975 -> 25
+  #  update_interval: 1s
+
+  # WEJŚCIE POMIARU NAPIĘCIA DO 20V
+  #- platform: adc
+  #  pin: GPIO35
+  #  id: adc_sensor_1
+  #  attenuation: 11db
+  #  name: "Napięcie ADC 1"
+  #  device_class: "voltage"
+  #  filters:
+  #    - calibrate_linear:
+  #      - 0.62 -> 5
+  #      - 1.22 -> 10
+  #      - 1.83 -> 15
+  #      - 2.425 -> 20
+  #      - 2.975 -> 25
+  #  update_interval: 1s
+  
+  # WEJŚCIE POMIARU NAPIĘCIA ZASILANIE-PRZEKAŹNIKI
+  - platform: adc
+    pin: GPIO39
+    id: adc_sensor_4
+    attenuation: 11db
+    name: "Napięcie zasilanie"
+    device_class: "voltage"
+    filters:
+      - calibrate_linear:
+        - 0.55 -> 10
+        - 0.825 -> 15
+        - 1.10 -> 20
+        - 1.37 -> 25
+    update_interval: 1s
+
+  # CZUJNIK POMIARU TEMPERATURY PCB 1 - USTAW KTÓRE OBWODY MAJĄ BYĆ WYŁĄCZONE W PRZYPADKU PRZEKROCZENIA TEMPERATURY
+  - platform: tmp102
+    i2c_id: bus_a
+    name: "Temperatura PCB"
+    address: 0x49
+    id: temp_1
+    update_interval: 15s
+    device_class: "temperature"
+    on_value:
+      if:
+        condition:
+          sensor.in_range:
+            id: temp_1
+            above: 70.0
+        then:
+        - display.page.show: page3
+        - switch.turn_off: relay_01
+        - switch.turn_off: relay_02
+        - switch.turn_off: relay_03
+        - switch.turn_off: relay_04
+        - switch.turn_off: relay_05
+        - switch.turn_off: relay_06
+        - switch.turn_off: relay_07
+        - switch.turn_off: relay_08
+
+  # POMIAR CZASU OD OSTATNIEGO URUCHOMIENIA
+  - platform: uptime
+    name: Uptime Sensor
+    id: uptime_sensor_M03
+    internal: true
+    update_interval: 60s
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human_M03
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor_M03).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? to_string(days) + "d " : "") +
+                (hours ? to_string(hours) + "h " : "") +
+                (minutes ? to_string(minutes) + "m " : "") +
+                (to_string(seconds) + "s")
+              ).c_str();
+  
+  # POMIAR CZASU OD OSTATNIEGO URUCHOMIENIA
+  - platform: uptime
+    name: "Uptime Sensor M03"
+    id: upt_M03
+    internal: true
+
+# KONFIGURACJA LAN LUB WIFI
+#wifi:
+  #ssid: "12345678"  
+  #password: "12345678"
+  #id: eth
+
+ethernet:
+  type: LAN8720
+  mdc_pin: GPIO23
+  mdio_pin: GPIO18
+  clk_mode: GPIO17_OUT
+  phy_addr: 1
+  id: eth
+
+  #STAŁE IP
+  #manual_ip:
+    #static_ip: 192.168.1.50
+    #gateway: 192.168.1.1
+    #subnet: 255.255.255.0
+    #dns1 : 8.8.8.8
+    #dns2 : 8.8.4.4
+
+
+# KONFIGURACJA I2C 
+i2c:
+   - id: bus_a
+     sda: 15
+     scl: 5
+     scan: true
+     frequency: 400kHz
+   - id: bus_b
+     sda: 16
+     scl: 32
+     scan: true
+     frequency: 400kHz
+
+# KONFIGURACJA MCP23017
+mcp23017:
+  - id: 'mcp23017_hub_1' 
+    address: 0x20
+    i2c_id: bus_a
+
+  #EKSPANDER 16IN
+  - id: 'mcp23017_hub_3' 
+    address: 0x22
+    i2c_id: bus_b
+
+
+# KONFIGURACJA DIODY LED ORAZ BUZZERA OD ALARMU
+switch:
+  
+#KONFIGURACJA WYJŚĆ 
+  - platform: gpio
+    name: "RELAY-01"
+    id: relay_01
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 7
+      mode: OUTPUT
+      inverted: false
+    #on_turn_on:
+    #- delay: 2000ms
+    #- switch.turn_off: relay_01
+  - platform: gpio  
+    name: "RELAY-02"
+    id: relay_02
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 9
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-03"
+    id: relay_03
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 10
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-04"
+    id: relay_04
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 11
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-05"
+    id: relay_05
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 12
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-06"
+    id: relay_06
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 13
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-07"
+    id: relay_07
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 14
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-08"
+    id: relay_08
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 15
+      mode: OUTPUT
+      inverted: false
+  
+# KONFIGURACJA WEJŚĆ
+binary_sensor:
+  - platform: gpio
+    name: "INPUT-01"
+    id: input_01
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 8
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+      then:
+        #- switch.toggle: relay_01
+        - switch.turn_on: relay_01
+    on_release:
+      then:
+        - switch.turn_off: relay_01
+  
+  - platform: gpio
+    name: "INPUT-02"
+    id: input_02
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 6
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+      then:
+        #- switch.toggle: relay_02
+        - switch.turn_on: relay_02
+    on_release:
+      then:
+        - switch.turn_off: relay_02
+    
+  - platform: gpio
+    name: "INPUT-03"
+    id: input_03
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 5
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+      then:
+        #- switch.toggle: relay_03
+        - switch.turn_on: relay_03
+    on_release:
+      then:
+        - switch.turn_off: relay_03
+
+  - platform: gpio
+    name: "INPUT-04"
+    id: input_04
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 4
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+      then:
+        #- switch.toggle: relay_04
+        - switch.turn_on: relay_04
+    on_release:
+      then:
+        - switch.turn_off: relay_04
+        
+  - platform: gpio
+    name: "INPUT-05"
+    id: input_05
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 3
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+      then:
+        #- switch.toggle: relay_05
+        - switch.turn_on: relay_05
+    on_release:
+      then:
+        - switch.turn_off: relay_05
+
+  - platform: gpio
+    name: "INPUT-06"
+    id: input_06
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 2
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+      then:
+        #- switch.toggle: relay_06
+        - switch.turn_on: relay_06
+    on_release:
+      then:
+        - switch.turn_off: relay_06
+
+  - platform: gpio
+    name: "INPUT-07"
+    id: input_07
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 1
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+      then:
+        #- switch.toggle: relay_07
+        - switch.turn_on: relay_07
+    on_release:
+      then:
+        - switch.turn_off: relay_07
+
+  - platform: gpio
+    name: "INPUT-08"
+    id: input_08
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 0
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 30ms
+    on_press:
+      then:
+        #- switch.toggle: relay_08
+        - switch.turn_on: relay_08
+    on_release:
+      then:
+        - switch.turn_off: relay_08
+  
+# AKTYWACJA WEB SERWERA
+web_server:
+  port: 80
+  #js_include: "www.js"
+  #js_url: ""
+  #version: 2 
+
+# USTAWIENIA ELEMENTÓW TEKSTOWYCH
+text_sensor:
+  - platform: template
+    name: "ESP32-M03 Uptime"
+    id: uptime_human_M03
+    icon: mdi:clock-start
+  - platform: template
+    name: "IP"
+    id: ip_address
+    entity_category: diagnostic
+    icon: "mdi:ip-network"
+    #lambda: return { id(eth).get_ip_address().str() };
+    lambda: return { id(eth).get_ip_addresses()[0].str() };
+    update_interval: 10s
+
+#USTAWENIA CZCIONEK
+font:
+- file: "gfonts://Roboto"
+  id: font1
+  size: 12
+
+- file: "gfonts://Material+Symbols+Outlined"
+  id: materialdesignicons
+  size: 15
+  glyphs: [
+      "\U0000eb2f", # lan
+      "\U0000e875", # server
+      "\U0000e8b5", # clock
+      "\U0000e1ff" # thermometer
+      ]
+
+- file: "gfonts://Material+Symbols+Outlined"
+  id: materialdesignicons_big
+  size: 30
+  glyphs: [
+      "\U0000e1ff" # thermometer
+      ]
+
+display:
+  - platform: ssd1306_i2c
+    i2c_id: bus_a
+    model: "SSD1306_128X64"
+    id: oled_display
+    pages:
+      - id: page1
+        lambda: |-
+          it.printf(32, 5, id(font1), "SMARTBOB");
+          it.printf(27, 22, id(font1), "AUTOMATYKA");  
+          it.printf(5, 39, id(font1), "WWW.SMARTBOB.PL");  
+      - id: page2
+        lambda: |-
+          int seconds = round(id(upt_M03).state);
+          int days = seconds / (24 * 3600);
+          seconds = seconds % (24 * 3600);
+          int hours = seconds / 3600;
+          it.print(0, 0, id(materialdesignicons), TextAlign::LEFT, "\U0000eb2f");
+          it.printf(18, 1,id(font1), "%s", id(ip_address).state.c_str());
+          it.print(0, 16, id(materialdesignicons), TextAlign::LEFT, "\U0000e8b5");
+          it.printf(18,17,id(font1),"%d dni, %02d godzin",days,hours);
+          it.print(0, 32, id(materialdesignicons), TextAlign::LEFT, "\U0000e875");
+          it.printf(18, 33, id(font1), "SM-LITE-1616R"); 
+          it.print(0, 48, id(materialdesignicons), TextAlign::LEFT, "\U0000e1ff");
+          it.printf(18, 49, id(font1), "%.1f° ", id(temp_1).state); 
+      - id: page3
+        lambda: |-
+          it.printf(33, 5, id(font1), "OVERHEAT"); 
+          it.print(50, 20, id(materialdesignicons_big), TextAlign::LEFT, "\U0000e1ff");
+          it.printf(33, 52, id(font1), "%.1f° ", id(temp_1).state);
