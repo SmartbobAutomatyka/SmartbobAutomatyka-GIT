@@ -15,7 +15,7 @@ esphome:
 # Enable Home Assistant API
 api:
   encryption:
-    key: "j7Gm+thNY1iTNS6Anm6wPy8qB+xAvgfGTe8TKkP6qmc="
+    key: "xxxx"
   reboot_timeout: 0s
 
 ota:

@@ -5,11 +5,11 @@ substitutions:
 # Enable Home Assistant API
 api:
   encryption:
-    key: "LjHnLC2LLpKGjvZRBZC81DVlRuTuj6eyDWS43HqbEwE="
+    key: "xxxx"
 
 ota:
   - platform: esphome
-    password: "777ba3b3353b257f8ccfec4dd7555b01"
+    password: "xxx"
 
 # NAZWA STEROWNIKA
 esphome:
