@@ -38,9 +38,9 @@ esp32:
   framework:
     type: arduino
 
-# LOGOWANIE
-logger:
-  level: VERBOSE
+# LOGOWANIE - printuje dodatkowe informacje
+# logger:
+#  level: VERBOSE
 
 # KOMNUNIKACJA UART-RS485 - USTAW SWOJĄ CZESTOLIWOŚĆ
 uart:
