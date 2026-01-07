@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VirtualInUdp Title="SM-0808R-9C5B" Comment="" Address="192.168.0.47" Port="7000">
+	<Info templateType="1" minVersion="15031202"/>
+	<VirtualInUdpCmd Title="SM-0808R-9C5B-IN1" Comment="Brak opisu" Address="192.168.0.47" Check="SM-0808R-9C5B,INPUT,1,\v" Signed="true" Analog="true" SourceValLow="0" DestValLow="0" SourceValHigh="1" DestValHigh="1" DefVal="0" MinVal="0" MaxVal="1" Unit="&lt;v.x&gt;" HintText=""/>
+	<VirtualInUdpCmd Title="SM-0808R-9C5B-IN2" Comment="Brak opisu" Address="192.168.0.47" Check="SM-0808R-9C5B,INPUT,2,\v" Signed="true" Analog="true" SourceValLow="0" DestValLow="0" SourceValHigh="1" DestValHigh="1" DefVal="0" MinVal="0" MaxVal="1" Unit="&lt;v.x&gt;" HintText=""/>
+	<VirtualInUdpCmd Title="SM-0808R-9C5B-IN3" Comment="Brak opisu" Address="192.168.0.47" Check="SM-0808R-9C5B,INPUT,3,\v" Signed="true" Analog="true" SourceValLow="0" DestValLow="0" SourceValHigh="1" DestValHigh="1" DefVal="0" MinVal="0" MaxVal="1" Unit="&lt;v.x&gt;" HintText=""/>
+	<VirtualInUdpCmd Title="SM-0808R-9C5B-IN4" Comment="Brak opisu" Address="192.168.0.47" Check="SM-0808R-9C5B,INPUT,4,\v" Signed="true" Analog="true" SourceValLow="0" DestValLow="0" SourceValHigh="1" DestValHigh="1" DefVal="0" MinVal="0" MaxVal="1" Unit="&lt;v.x&gt;" HintText=""/>
+	<VirtualInUdpCmd Title="SM-0808R-9C5B-IN5" Comment="Brak opisu" Address="192.168.0.47" Check="SM-0808R-9C5B,INPUT,5,\v" Signed="true" Analog="true" SourceValLow="0" DestValLow="0" SourceValHigh="1" DestValHigh="1" DefVal="0" MinVal="0" MaxVal="1" Unit="&lt;v.x&gt;" HintText=""/>
+	<VirtualInUdpCmd Title="SM-0808R-9C5B-IN6" Comment="Brak opisu" Address="192.168.0.47" Check="SM-0808R-9C5B,INPUT,6,\v" Signed="true" Analog="true" SourceValLow="0" DestValLow="0" SourceValHigh="1" DestValHigh="1" DefVal="0" MinVal="0" MaxVal="1" Unit="&lt;v.x&gt;" HintText=""/>
+	<VirtualInUdpCmd Title="SM-0808R-9C5B-IN7" Comment="Brak opisu" Address="192.168.0.47" Check="SM-0808R-9C5B,INPUT,7,\v" Signed="true" Analog="true" SourceValLow="0" DestValLow="0" SourceValHigh="1" DestValHigh="1" DefVal="0" MinVal="0" MaxVal="1" Unit="&lt;v.x&gt;" HintText=""/>
+	<VirtualInUdpCmd Title="SM-0808R-9C5B-IN8" Comment="Brak opisu" Address="192.168.0.47" Check="SM-0808R-9C5B,INPUT,8,\v" Signed="true" Analog="true" SourceValLow="0" DestValLow="0" SourceValHigh="1" DestValHigh="1" DefVal="0" MinVal="0" MaxVal="1" Unit="&lt;v.x&gt;" HintText=""/>
+</VirtualInUdp>
