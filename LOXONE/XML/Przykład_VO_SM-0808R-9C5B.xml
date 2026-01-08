@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VirtualOut Title="SM-0808R-9C5B" Comment="" Address="/dev/udp/192.168.0.47/8000" CmdInit="" HintText="" CloseAfterSend="true" CmdSep=";">
+	<Info templateType="3" minVersion="15031202"/>
+	<VirtualOutCmd Title="SM-0808R-9C5B-R1" Comment="Brak opisu" CmdOnMethod="GET" CmdOffMethod="GET" CmdOn="SM-0808R-9C5B,1,1" CmdOnHTTP="" CmdOnPost="" CmdOff="SM-0808R-9C5B,1,0" CmdOffHTTP="" CmdOffPost="" CmdAnswer="" HintText="" Analog="false" Repeat="0" RepeatRate="0"/>
+	<VirtualOutCmd Title="SM-0808R-9C5B-R2" Comment="Brak opisu" CmdOnMethod="GET" CmdOffMethod="GET" CmdOn="SM-0808R-9C5B,2,1" CmdOnHTTP="" CmdOnPost="" CmdOff="SM-0808R-9C5B,2,0" CmdOffHTTP="" CmdOffPost="" CmdAnswer="" HintText="" Analog="false" Repeat="0" RepeatRate="0"/>
+	<VirtualOutCmd Title="SM-0808R-9C5B-R3" Comment="Brak opisu" CmdOnMethod="GET" CmdOffMethod="GET" CmdOn="SM-0808R-9C5B,3,1" CmdOnHTTP="" CmdOnPost="" CmdOff="SM-0808R-9C5B,3,0" CmdOffHTTP="" CmdOffPost="" CmdAnswer="" HintText="" Analog="false" Repeat="0" RepeatRate="0"/>
+	<VirtualOutCmd Title="SM-0808R-9C5B-R4" Comment="Brak opisu" CmdOnMethod="GET" CmdOffMethod="GET" CmdOn="SM-0808R-9C5B,4,1" CmdOnHTTP="" CmdOnPost="" CmdOff="SM-0808R-9C5B,4,0" CmdOffHTTP="" CmdOffPost="" CmdAnswer="" HintText="" Analog="false" Repeat="0" RepeatRate="0"/>
+	<VirtualOutCmd Title="SM-0808R-9C5B-R5" Comment="Brak opisu" CmdOnMethod="GET" CmdOffMethod="GET" CmdOn="SM-0808R-9C5B,5,1" CmdOnHTTP="" CmdOnPost="" CmdOff="SM-0808R-9C5B,5,0" CmdOffHTTP="" CmdOffPost="" CmdAnswer="" HintText="" Analog="false" Repeat="0" RepeatRate="0"/>
+	<VirtualOutCmd Title="SM-0808R-9C5B-R6" Comment="Brak opisu" CmdOnMethod="GET" CmdOffMethod="GET" CmdOn="SM-0808R-9C5B,6,1" CmdOnHTTP="" CmdOnPost="" CmdOff="SM-0808R-9C5B,6,0" CmdOffHTTP="" CmdOffPost="" CmdAnswer="" HintText="" Analog="false" Repeat="0" RepeatRate="0"/>
+	<VirtualOutCmd Title="SM-0808R-9C5B-R7" Comment="Brak opisu" CmdOnMethod="GET" CmdOffMethod="GET" CmdOn="SM-0808R-9C5B,7,1" CmdOnHTTP="" CmdOnPost="" CmdOff="SM-0808R-9C5B,7,0" CmdOffHTTP="" CmdOffPost="" CmdAnswer="" HintText="" Analog="false" Repeat="0" RepeatRate="0"/>
+	<VirtualOutCmd Title="SM-0808R-9C5B-R8" Comment="Brak opisu" CmdOnMethod="GET" CmdOffMethod="GET" CmdOn="SM-0808R-9C5B,8,1" CmdOnHTTP="" CmdOnPost="" CmdOff="SM-0808R-9C5B,8,0" CmdOffHTTP="" CmdOffPost="" CmdAnswer="" HintText="" Analog="false" Repeat="0" RepeatRate="0"/>
+</VirtualOut>
