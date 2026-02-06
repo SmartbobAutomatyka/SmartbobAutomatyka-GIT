@@ -38,8 +38,8 @@ esp32:
     type: arduino
 
 # LOGING LEVEL / LOGOWANIE
-logger:
-  level: DEBUG
+#logger:
+#  level: DEBUG
 
 # 1WIRE
 one_wire:

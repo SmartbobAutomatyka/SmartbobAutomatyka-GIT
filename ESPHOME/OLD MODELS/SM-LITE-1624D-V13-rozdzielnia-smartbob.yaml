@@ -8,8 +8,8 @@ esp32:
     type: arduino
 
 # LOGOWANIE
-logger:
-  level: VERBOSE
+#logger:
+#  level: VERBOSE
 
 # Enable Home Assistant API
 api:
