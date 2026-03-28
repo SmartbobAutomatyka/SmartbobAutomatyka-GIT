@@ -18,12 +18,12 @@ esphome:
 # KLUCZ HA - USTAW SWÓJ
 api:
   #encryption:
-  #  key: "98MUt/upiZL3PhfR1Ynu7ji8EHjd8tuvR8zOAS2/RDI="
+  #  key: "twoj"
   reboot_timeout: 0s
 
 # KLUCZ OTA - USTAW SWÓJ
 ota:
-  #password: "6d492e327cf49782cc7de2da362196dc"
+  #password: "twoj"
 
 # RODZAJ PROCESORA
 esp32:

@@ -23,8 +23,8 @@ esp32:
     type: arduino
 
 # LOGOWANIE
-logger:
-  level: DEBUG
+#logger:
+#  level: DEBUG
 
 # KOMNUNIKACJA UART-RS485 - USTAW SWOJĄ CZESTOLIWOŚĆ
 uart:

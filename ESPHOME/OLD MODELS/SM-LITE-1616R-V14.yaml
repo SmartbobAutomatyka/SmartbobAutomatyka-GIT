@@ -29,8 +29,8 @@ esp32:
     type: arduino
 
 # LOGOWANIE
-logger:
-  level: VERBOSE
+#logger:
+#  level: VERBOSE
 
 # KONFIGURACJA 1WIRE
 one_wire:

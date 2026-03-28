@@ -40,8 +40,8 @@ esp32:
     type: arduino
 
 # LOGOWANIE
-logger:
-  level: VERBOSE
+#logger:
+#  level: VERBOSE
 
 # KOMNUNIKACJA UART-RS485 - USTAW SWOJĄ CZESTOLIWOŚĆ
 uart:
