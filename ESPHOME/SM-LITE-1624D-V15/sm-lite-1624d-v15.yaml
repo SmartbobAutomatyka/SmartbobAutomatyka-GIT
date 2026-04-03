@@ -117,7 +117,7 @@ sensor:
   #  id: adc_sensor_1
   #  attenuation: 11db
 
-  # WEJŚCIE POMIARU NAPIĘCIA DO 60V
+  # WEJŚCIE POMIARU NAPIĘCIA DO 26V
   - platform: adc
     pin: GPIO34
     id: adc_sensor_2
@@ -133,7 +133,7 @@ sensor:
         - 2.975 -> 25
     update_interval: 5s
 
-  # WEJŚCIE POMIARU NAPIĘCIA DO 60V
+  # WEJŚCIE POMIARU NAPIĘCIA DO 26V
   #- platform: adc
   #  pin: GPIO35
   #  id: adc_sensor_3
