@@ -126,11 +126,12 @@ sensor:
     #KALIBRACJA DLA 24V
     filters:
       - calibrate_linear:
-        - 0.62 -> 5
-        - 1.22 -> 10
-        - 1.83 -> 15
-        - 2.425 -> 20
-        - 2.975 -> 25
+          - 0.570 -> 5
+          - 1.117 -> 10
+          - 1.662 -> 15
+          - 2.205 -> 20
+          - 2.732 -> 25
+          - 3.046 -> 28
     update_interval: 5s
 
   # WEJŚCIE POMIARU NAPIĘCIA DO 26V
@@ -142,11 +143,12 @@ sensor:
   #  #KALIBRACJA DLA 24V
   #  filters:
   #    - calibrate_linear:
-  #    - 0.62 -> 5
-  #    - 1.22 -> 10
-  #    - 1.83 -> 15
-  #    - 2.425 -> 20
-  #    - 2.975 -> 25
+  #        - 0.570 -> 5
+  #        - 1.117 -> 10
+  #        - 1.662 -> 15
+  #        - 2.205 -> 20
+  #        - 2.732 -> 25
+  #        - 3.046 -> 28
   #  update_interval: 10s
   
  # ADC INPUT VOLTAGE CHANNEL / KANAŁ POMIARU NAPIĘCIA ZASILANIA
