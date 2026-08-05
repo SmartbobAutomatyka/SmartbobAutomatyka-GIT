@@ -127,10 +127,12 @@ sensor:
     device_class: "voltage"
     filters:
       - calibrate_linear:
-        - 0.55 -> 10
-        - 0.825 -> 15
-        - 1.10 -> 20
-        - 1.37 -> 25
+          - 0.570 -> 5
+          - 1.117 -> 10
+          - 1.662 -> 15
+          - 2.205 -> 20
+          - 2.732 -> 25
+          - 3.046 -> 28
     update_interval: 1s
 
   # CZUJNIK POMIARU TEMPERATURY PCB 1 - USTAW KTÓRE OBWODY MAJĄ BYĆ WYŁĄCZONE W PRZYPADKU PRZEKROCZENIA TEMPERATURY
