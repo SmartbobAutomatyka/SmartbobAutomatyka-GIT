@@ -84,56 +84,86 @@ sensor:
   # i2c_id: bus_b
   #  update_interval: 10s
 
-  # WEJŚCIE POMIARU NAPIĘCIA DO 20V
+  # WEJŚCIE POMIARU NAPIĘCIA DO 28V
   #- platform: adc
   #  pin: GPIO34
   #  id: adc_sensor_2
-  #  attenuation: 11db
+  #  attenuation: 12db
   #  name: "Napięcie ADC 2"
-  #  device_class: "voltage"
-  #  filters:
-  #    - calibrate_linear:
-  #      - 0.570 -> 5
-  #      - 1.117 -> 10
-  #      - 1.662 -> 15
-  #      - 2.205 -> 20
-  #      - 2.732 -> 25
-  #      - 3.046 -> 28
+  #  samples: 32
+  #  sampling_mode: avg
   #  update_interval: 1s
+  #  unit_of_measurement: "V"
+  #  device_class: "voltage"
+  #  accuracy_decimals: 3
+  #  filters:
+  #    - sliding_window_moving_average:
+  #        window_size: 5
+  #        send_every: 1
+  #    - offset: -0.142
+  #    - calibrate_linear:
+  #      - 0.011 -> 1.3
+  #      - 0.085 -> 2
+  #      - 0.403 -> 5
+  #      - 0.947 -> 10
+  #      - 1.489 -> 15
+  #      - 2.029 -> 20
+  #      - 2.563 -> 25
+  #      - 2.882 -> 28
 
-  # WEJŚCIE POMIARU NAPIĘCIA DO 20V
+  # WEJŚCIE POMIARU NAPIĘCIA DO 28V
   #- platform: adc
   #  pin: GPIO35
   #  id: adc_sensor_1
-  #  attenuation: 11db
+  #  attenuation: 12db
   #  name: "Napięcie ADC 1"
-  #  device_class: "voltage"
-  #  filters:
-  #    - calibrate_linear:
-  #      - 0.570 -> 5
-  #      - 1.117 -> 10
-  #      - 1.662 -> 15
-  #      - 2.205 -> 20
-  #      - 2.732 -> 25
-  #      - 3.046 -> 28
+  #  samples: 32
+  #  sampling_mode: avg
   #  update_interval: 1s
+  #  unit_of_measurement: "V"
+  #  device_class: "voltage"
+  #  accuracy_decimals: 3
+  #  filters:
+  #    - sliding_window_moving_average:
+  #        window_size: 5
+  #        send_every: 1
+  #    - offset: -0.142
+  #    - calibrate_linear:
+  #      - 0.011 -> 1.3
+  #      - 0.085 -> 2
+  #      - 0.403 -> 5
+  #      - 0.947 -> 10
+  #      - 1.489 -> 15
+  #      - 2.029 -> 20
+  #      - 2.563 -> 25
+  #      - 2.882 -> 28
   
   # WEJŚCIE POMIARU NAPIĘCIA ZASILANIE-PRZEKAŹNIKI
   - platform: adc
     pin: GPIO39
     id: adc_sensor_4
-    attenuation: 11db
+    attenuation: 12db
     name: "Napięcie zasilanie"
-    device_class: "voltage"
-    filters:
-      - calibrate_linear:
-          - 0.570 -> 5
-          - 1.117 -> 10
-          - 1.662 -> 15
-          - 2.205 -> 20
-          - 2.732 -> 25
-          - 3.046 -> 28
+    samples: 32
+    sampling_mode: avg
     update_interval: 1s
+    unit_of_measurement: "V"
+    device_class: "voltage"
+    accuracy_decimals: 3
+    filters:
+     - sliding_window_moving_average:
+         window_size: 5
+         send_every: 1
+     - offset: -0.142
+     - calibrate_linear:
+        - 0.011 -> 1.3
+        - 0.085 -> 2
+        - 0.403 -> 5
+        - 0.947 -> 10
+        - 1.489 -> 15
+        - 2.029 -> 20
+        - 2.563 -> 25
+        - 2.882 -> 28
 
   # CZUJNIK POMIARU TEMPERATURY PCB 1 - USTAW KTÓRE OBWODY MAJĄ BYĆ WYŁĄCZONE W PRZYPADKU PRZEKROCZENIA TEMPERATURY
   - platform: tmp102

@@ -120,50 +120,82 @@ sensor:
   - platform: adc
     pin: GPIO34
     id: sensor_adc_ext_2
-    attenuation: 11db
-    name: "Voltage ADC 2"
-    device_class: "voltage"
-    filters:
-      - calibrate_linear:
-          - 0.570 -> 5
-          - 1.117 -> 10
-          - 1.662 -> 15
-          - 2.205 -> 20
-          - 2.732 -> 25
-          - 3.046 -> 28
+    attenuation: 12db
+    name: "ADC 2"
+    samples: 32
+    sampling_mode: avg
     update_interval: 1s
+    unit_of_measurement: "V"
+    device_class: "voltage"
+    accuracy_decimals: 3
+    filters:
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+      - offset: -0.142
+      - calibrate_linear:
+          - 0.011 -> 1.3
+          - 0.085 -> 2
+          - 0.403 -> 5
+          - 0.947 -> 10
+          - 1.489 -> 15
+          - 2.029 -> 20
+          - 2.563 -> 25
+          - 2.882 -> 28
 
   # EXT ADC INPUT 1 / KANAŁ POMIARU NAPIĘCIA 1
   - platform: adc
     pin: GPIO35
     id: sensor_adc_ext_1
-    attenuation: 11db
-    name: "Voltage ADC 1"
-    device_class: "voltage"
-    filters:
-      - calibrate_linear:
-          - 0.570 -> 5
-          - 1.117 -> 10
-          - 1.662 -> 15
-          - 2.205 -> 20
-          - 2.732 -> 25
-          - 3.046 -> 28
+    attenuation: 12db
+    name: "ADC 1"
+    samples: 32
+    sampling_mode: avg
     update_interval: 1s
+    unit_of_measurement: "V"
+    device_class: "voltage"
+    accuracy_decimals: 3
+    filters:
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+      - offset: -0.142
+      - calibrate_linear:
+          - 0.011 -> 1.3
+          - 0.085 -> 2
+          - 0.403 -> 5
+          - 0.947 -> 10
+          - 1.489 -> 15
+          - 2.029 -> 20
+          - 2.563 -> 25
+          - 2.882 -> 28
 
   # ADC INPUT VOLTAGE CHANNEL / KANAŁ POMIARU NAPIĘCIA ZASILANIA
   - platform: adc
     pin: GPIO36
     id: sensor_adc_power_supply
-    attenuation: 11db
-    name: "Power voltage"
-    device_class: "voltage"
-    filters:
-      - calibrate_linear:
-          - 0.55 -> 10
-          - 0.825 -> 15
-          - 1.10 -> 20
-          - 1.37 -> 25
+    attenuation: 12db
+    name: "Power"
+    samples: 32
+    sampling_mode: avg
     update_interval: 1s
+    unit_of_measurement: "V"
+    device_class: "voltage"
+    accuracy_decimals: 3
+    filters:
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+      - offset: -0.142
+      - calibrate_linear:
+          - 0.011 -> 1.3
+          - 0.085 -> 2
+          - 0.403 -> 5
+          - 0.947 -> 10
+          - 1.489 -> 15
+          - 2.029 -> 20
+          - 2.563 -> 25
+          - 2.882 -> 28
 
   # TMP102 OVER TEMP CONFIGURATION 1 / KONFIGURACJA ZACHOWANIA PO PRZEKROCZENIU TEMPERATURY CZUJNIK 1
   - platform: tmp102

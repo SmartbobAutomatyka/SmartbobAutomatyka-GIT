@@ -117,55 +117,86 @@ sensor:
   #  id: adc_sensor_1
   #  attenuation: 11db
 
-  # WEJŚCIE POMIARU NAPIĘCIA DO 26V
+  # WEJŚCIE POMIARU NAPIĘCIA DO 28V
   - platform: adc
     pin: GPIO34
     id: adc_sensor_2
-    name: "Napięcie HV 1"
-    attenuation: 11db
-    #KALIBRACJA DLA 24V
+    attenuation: 12db
+    name: "ADC 1"
+    samples: 32
+    sampling_mode: avg
+    update_interval: 1s
+    unit_of_measurement: "V"
+    device_class: "voltage"
+    accuracy_decimals: 3
     filters:
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+      - offset: -0.142
       - calibrate_linear:
-          - 0.570 -> 5
-          - 1.117 -> 10
-          - 1.662 -> 15
-          - 2.205 -> 20
-          - 2.732 -> 25
-          - 3.046 -> 28
-    update_interval: 5s
+          - 0.011 -> 1.3
+          - 0.085 -> 2
+          - 0.403 -> 5
+          - 0.947 -> 10
+          - 1.489 -> 15
+          - 2.029 -> 20
+          - 2.563 -> 25
+          - 2.882 -> 28
 
-  # WEJŚCIE POMIARU NAPIĘCIA DO 26V
+  # WEJŚCIE POMIARU NAPIĘCIA DO 28V
   #- platform: adc
   #  pin: GPIO35
   #  id: adc_sensor_3
-  #  name: "Napięcie HV 2"
-  #  attenuation: 11db
-  #  #KALIBRACJA DLA 24V
+  #  attenuation: 12db
+  #  name: "ADC 2"
+  #  samples: 32
+  #  sampling_mode: avg
+  #  update_interval: 1s
+  #  unit_of_measurement: "V"
+  #  device_class: "voltage"
+  #  accuracy_decimals: 3
   #  filters:
+  #    - sliding_window_moving_average:
+  #        window_size: 5
+  #        send_every: 1
+  #    - offset: -0.142
   #    - calibrate_linear:
-  #        - 0.570 -> 5
-  #        - 1.117 -> 10
-  #        - 1.662 -> 15
-  #        - 2.205 -> 20
-  #        - 2.732 -> 25
-  #        - 3.046 -> 28
-  #  update_interval: 10s
+  #      - 0.011 -> 1.3
+  #      - 0.085 -> 2
+  #      - 0.403 -> 5
+  #      - 0.947 -> 10
+  #      - 1.489 -> 15
+  #      - 2.029 -> 20
+  #      - 2.563 -> 25
+  #      - 2.882 -> 28
   
  # ADC INPUT VOLTAGE CHANNEL / KANAŁ POMIARU NAPIĘCIA ZASILANIA
   #- platform: adc
   #  pin: GPIO36
   #  id: sensor_adc_power_supply
-  #  attenuation: 11db
-  #  name: "Power voltage"
+  #  attenuation: 12db
+  #  name: "Power"
+  #  samples: 32
+  #  sampling_mode: avg
+  #  update_interval: 1s
+  #  unit_of_measurement: "V"
   #  device_class: "voltage"
+  #  accuracy_decimals: 3
   #  filters:
-  #    - calibrate_linear: WARTOSCI DO AKTUALIZACJI
-  #      - 0.62 -> 5
-  #      - 1.22 -> 10
-  #      - 1.83 -> 15
-  #      - 2.425 -> 20
-  #      - 2.975 -> 25
-  #  update_interval: 5s
+  #    - sliding_window_moving_average:
+  #        window_size: 5
+  #        send_every: 1
+  #    - offset: -0.142
+  #    - calibrate_linear:
+  #      - 0.011 -> 1.3
+  #      - 0.085 -> 2
+  #      - 0.403 -> 5
+  #      - 0.947 -> 10
+  #      - 1.489 -> 15
+  #      - 2.029 -> 20
+  #      - 2.563 -> 25
+  #      - 2.882 -> 28
 
   # TEMPERATURA PROCESORA
   - platform: internal_temperature
