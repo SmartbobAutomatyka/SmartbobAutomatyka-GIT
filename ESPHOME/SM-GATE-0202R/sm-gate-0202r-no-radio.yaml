@@ -1,0 +1,337 @@
+substitutions:
+  name: smartbob-0202r-1
+  friendly_name: SMARTBOB-0202R-1
+
+# NAZWA STEROWNIKA
+esphome:
+  name: ${name}
+  comment: ${friendly_name}
+  on_boot:
+    then:
+      - display.page.show: page1
+      - delay: 7s
+      - display.page.show: page2
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "xxxxxxxxxxxxxxxx"
+
+ota:
+  - platform: esphome
+    password: "xxxxxxxxxxxxxxxxxxx"
+
+# RODZAJ PROCESORA
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# LOGOWANIE
+logger:
+  level: VERBOSE
+
+# KOMNUNIKACJA UART-RS485 - USTAW SWOJĄ CZESTOLIWOŚĆ
+uart:
+  - id: mod_uart
+    rx_pin: 13
+    tx_pin: 14
+    baud_rate: 9600
+    stop_bits: 1
+    data_bits: 8
+    parity: NONE
+    debug:
+      direction: BOTH
+
+# KONFIGURACJA 1 WIRE
+one_wire:
+  - platform: gpio
+    pin: GPIO32
+
+# WYJŚCIA
+light:
+  - platform: binary
+    name: "LIGHT 1"
+    output: relay_1
+    id: light_1
+  - platform: binary
+    name: "LIGHT 2"
+    output: realy_2
+    id: light_2
+
+# PRZEKAŹNIKI
+output:
+  - id: relay_1
+    platform: gpio
+    pin: GPIO2
+
+  - id: realy_2
+    platform: gpio
+    pin: GPIO4
+
+# KONFIGURACJA WEJŚĆ
+binary_sensor:
+  - platform: gpio
+    name: "INPUT-01"
+    id: input_01
+    pin:
+      number: GPIO39
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 40ms
+    on_press:
+       then:
+        - light.toggle: light_1
+
+  - platform: gpio
+    name: "INPUT-02"
+    id: input_02
+    pin:
+      number: GPIO36
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+    - delayed_on: 40ms
+    on_press:
+       then:
+        - light.toggle: light_2
+
+# KONFIGURACJA CZUJNIKÓW I PERYFERIÓW
+sensor:
+  #- platform: dallas_temp
+  #  name: "Temperatura DS18B20"
+  #  update_interval: 2s
+
+  #CZUJNIK NA I2C
+  #- platform: bh1750
+  #  name: "BH1750 Jasność"
+  #  address: 0x23
+  #  update_interval: 2s
+
+  #- platform: bmp280
+  #  temperature:
+  #    name: "Outside Temperature"
+  #    oversampling: 16x
+  #  pressure:
+  #    name: "Outside Pressure"
+  #  update_interval: 5s
+  #  i2c_id: bus_b
+  #  address: 0x76
+
+  # ADC INPUT VOLTAGE CHANNEL
+  #- platform: adc
+  #  pin: GPIO34
+  #  id: adc_sensor_1
+  #  name: "Napięcie HV 1"
+  #  attenuation: 12db
+  #  samples: 32
+  #  sampling_mode: avg
+  #  update_interval: 1s
+  #  unit_of_measurement: "V"
+  #  accuracy_decimals: 3
+  #  filters:
+  #    - sliding_window_moving_average:
+  #        window_size: 5
+  #        send_every: 1
+  #    - offset: -0.142
+  #    - calibrate_linear:
+  #      - 0.011 -> 1.3
+  #      - 0.085 -> 2
+  #      - 0.403 -> 5
+  #      - 0.947 -> 10
+  #      - 1.489 -> 15
+  #      - 2.029 -> 20
+  #      - 2.563 -> 25
+  #      - 2.882 -> 28
+
+  # ADC INPUT VOLTAGE CHANNEL
+  #- platform: adc
+  #  pin: GPIO35
+  #  id: adc_sensor_2
+  #  name: "Napięcie HV 2"
+  #  attenuation: 12db
+  #  samples: 32
+  #  sampling_mode: avg
+  #  update_interval: 1s
+  #  unit_of_measurement: "V"
+  #  accuracy_decimals: 3
+  #  filters:
+  #    - sliding_window_moving_average:
+  #        window_size: 5
+  #        send_every: 1
+  #    - offset: -0.142
+  #    - calibrate_linear:
+  #      - 0.011 -> 1.3
+  #      - 0.085 -> 2
+  #      - 0.403 -> 5
+  #      - 0.947 -> 10
+  #      - 1.489 -> 15
+  #      - 2.029 -> 20
+  #      - 2.563 -> 25
+  #      - 2.882 -> 28
+
+  # CZUJNIK POMIARU TEMPERATURY PCB 1 - USTAW KTÓRE OBWODY MAJĄ BYĆ WYŁĄCZONE W PRZYPADKU PRZEKROCZENIA TEMPERATURY
+  - platform: tmp102
+    i2c_id: bus_a
+    name: "Temperatura PCB"
+    address: 0x49
+    id: temp_1
+    update_interval: 15s
+    device_class: "temperature"
+    on_value:
+      if:
+        condition:
+          sensor.in_range:
+            id: temp_1
+            above: 70.0
+        then:
+        - display.page.show: page3
+
+
+  # POMIAR CZASU OD OSTATNIEGO URUCHOMIENIA
+  - platform: uptime
+    name: Uptime Sensor
+    id: uptime_sensor_M03
+    internal: true
+    update_interval: 60s
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human_M03
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor_M03).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? to_string(days) + "d " : "") +
+                (hours ? to_string(hours) + "h " : "") +
+                (minutes ? to_string(minutes) + "m " : "") +
+                (to_string(seconds) + "s")
+              ).c_str();
+
+  # POMIAR CZASU OD OSTATNIEGO URUCHOMIENIA
+  - platform: uptime
+    name: "Uptime Sensor M03"
+    id: upt_M03
+    internal: true
+
+# KONFIGURACJA LAN LUB WIFI
+#wifi:
+  #ssid: "12345678"
+  #password: "12345678"
+  #id: eth
+
+ethernet:
+  type: LAN8720
+  mdc_pin: GPIO23
+  mdio_pin: GPIO18
+  clk_mode: GPIO17_OUT
+  phy_addr: 1
+  id: eth
+
+  # STAŁE IP
+  #manual_ip:
+  #  static_ip: 192.168.1.50
+  #  gateway: 192.168.1.1
+  #  subnet: 255.255.255.0
+  #  dns1 : 8.8.8.8
+  #  dns2 : 8.8.4.4
+
+
+# KONFIGURACJA I2C
+i2c:
+  - id: bus_a
+    sda: 15
+    scl: 5
+    scan: true
+    frequency: 400kHz
+  - id: bus_b
+    sda: 33
+    scl: 0
+    scan: true
+    frequency: 400kHz
+
+
+# AKTYWACJA WEB SERWERA
+web_server:
+  port: 80
+  local: true
+
+
+# USTAWIENIA ELEMENTÓW TEKSTOWYCH
+text_sensor:
+  - platform: template
+    name: "ESP32-M03 Uptime"
+    id: uptime_human_M03
+    icon: mdi:clock-start
+  - platform: template
+    name: "IP"
+    id: ip_address
+    entity_category: diagnostic
+    icon: "mdi:ip-network"
+    #lambda: return { id(eth).get_ip_address().str() };
+    lambda: return { id(eth).get_ip_addresses()[0].str() };
+    update_interval: 10s
+
+#USTAWENIA CZCIONEK
+font:
+- file: "gfonts://Roboto"
+  id: font1
+  size: 12
+
+- file: "gfonts://Material+Symbols+Outlined"
+  id: materialdesignicons
+  size: 15
+  glyphs: [
+      "\U0000eb2f", # lan
+      "\U0000e875", # server
+      "\U0000e8b5", # clock
+      "\U0000e1ff" # thermometer
+      ]
+
+- file: "gfonts://Material+Symbols+Outlined"
+  id: materialdesignicons_big
+  size: 30
+  glyphs: [
+      "\U0000e1ff" # thermometer
+      ]
+
+# USTAWIENIA EKRANU
+display:
+  - platform: ssd1306_i2c
+    i2c_id: bus_a
+    model: "SSD1306_128X64"
+    pages:
+      - id: page1
+        lambda: |-
+          it.printf(32, 5, id(font1), "SMARTBOB");
+          it.printf(27, 22, id(font1), "AUTOMATYKA");  
+          it.printf(5, 39, id(font1), "WWW.SMARTBOB.PL");
+      - id: page2
+        lambda: |-
+          int seconds = round(id(upt_M03).state);
+          int days = seconds / (24 * 3600);
+          seconds = seconds % (24 * 3600);
+          int hours = seconds / 3600;
+          it.print(0, 0, id(materialdesignicons), TextAlign::LEFT, "\U0000eb2f");
+          it.printf(18, 1,id(font1), "%s", id(ip_address).state.c_str());
+          it.print(0, 16, id(materialdesignicons), TextAlign::LEFT, "\U0000e8b5");
+          it.printf(18,17,id(font1),"%d dni, %02d godzin",days,hours);
+          it.print(0, 32, id(materialdesignicons), TextAlign::LEFT, "\U0000e875");
+          it.printf(18, 33, id(font1), "SM-GATE-0202R"); 
+          it.print(0, 48, id(materialdesignicons), TextAlign::LEFT, "\U0000e1ff");
+          it.printf(18, 49, id(font1), "%.1f° ", id(temp_1).state);
+      - id: page3
+        lambda: |-
+          it.printf(33, 5, id(font1), "OVERHEAT"); 
+          it.print(50, 20, id(materialdesignicons_big), TextAlign::LEFT, "\U0000e1ff");
+          it.printf(33, 52, id(font1), "%.1f° ", id(temp_1).state);
