@@ -9,7 +9,6 @@ Repozytorium zawiera firmware dla sterowników SMARTBOB SM-LITE oraz czujnika ob
 | SM-LITE-0202R | ESP32, 4 MB | 2 bezpośrednie, aktywne stanem niskim | 2 przekaźniki | Ethernet, Wi-Fi, OLED, 1-Wire, 1 × TMP102 `0x49`, 2 × wejście analogowe 24 V, RS485, opcjonalne zewnętrzne MCP23017 |
 | SM-LITE-0808R | ESP32, 4 MB | 8 przez MCP23017 | 8 przekaźników przez MCP23017 | Ethernet, Wi-Fi, OLED, 1-Wire, 1 × TMP102 `0x49`, 2 × wejście analogowe 24 V, SCT-013, RS485, opcjonalne zewnętrzne MCP23017 |
 | SM-LITE-1616R | ESP32, 4 MB | 16 przez MCP23017 | 16 przekaźników przez MCP23017 | Ethernet, Wi-Fi, OLED, 1-Wire, 2 × TMP102 `0x48`/`0x49`, 2 × wejście analogowe 24 V, SCT-013, RS485, opcjonalne zewnętrzne MCP23017 |
-| SMARTBOB-PS01C3 | ESP8285, 2 MB | PIR, mmWave, przycisk | LED | Wi-Fi, radar obecności, BH1750, UART radaru |
 
 ## Pozostałe katalogi i platformy
 
@@ -125,39 +124,6 @@ Firmware 0202R, 0808R i 1616R korzysta ze wspólnego panelu i udostępnia międz
 
 Jeżeli po uruchomieniu nie jest dostępna skonfigurowana sieć, sterownik uruchamia własny punkt dostępowy. Domyślne hasło AP to `12345678`.
 
-## SMARTBOB-PS01C3
-
-Samodzielny firmware dla czujnika obecności z ESP8285. Nie korzysta z ESPHome.
-
-Obsługiwany sprzęt:
-
-- PIR: GPIO14;
-- wyjście obecności mmWave: GPIO12;
-- UART radaru: TX GPIO15, RX GPIO13, 115200 bit/s;
-- BH1750: SDA GPIO4, SCL GPIO5, adres `0x23`;
-- LED: GPIO16;
-- przycisk: GPIO0.
-
-Najważniejsze funkcje:
-
-- panel WWW SMARTBOB;
-- konfiguracja Wi-Fi z DHCP lub statycznym adresem IP;
-- awaryjny Access Point `SMARTBOB-PS01C3-xxxx`;
-- podgląd PIR, mmWave, końcowego stanu obecności i natężenia światła;
-- konfiguracja zasięgu, czułości, opóźnień oraz czasu blokady radaru;
-- publikacja `MWAVE`, `PIR`, `LUX` i `OBECNOSC` do Loxone przez UDP;
-- eksport wejść wirtualnych do Loxone Config;
-- aktualizacja firmware z panelu WWW;
-- awaryjna strona aktualizacji pod adresem `/update`;
-- reset konfiguracji po przytrzymaniu przycisku przez 4 sekundy.
-
-Projekt źródłowy: [`SMARTBOB-PS01C3`](SMARTBOB-PS01C3)
-
-Zalecany aktualny plik, wersja 1.2.2:
-
-- [`SMARTBOB-PS01C3-v1.2.2-2026-08-26.bin`](SMARTBOBSOFT/SMARTBOB-PS01C3-v1.2.2-2026-08-26.bin)
-- [`SMARTBOB-PS01C3-full-2026-08-26.bin`](SMARTBOBSOFT/SMARTBOB-PS01C3-full-2026-08-26.bin) — ten sam firmware pod nazwą wydania `full`.
-
 ## Znaczenie nazw plików
 
 Nazwy plików mają postać:
@@ -168,7 +134,7 @@ SMARTBOB-<MODEL>-v<WERSJA>-<ROK-MIESIĄC-DZIEŃ>.bin
 ```
 
 - `full` dla sterowników SM-LITE oznacza kompletny obraz pamięci zawierający bootloader, tablicę partycji, aplikację oraz panel WWW LittleFS. Wgrywa się go od adresu `0x0`;
-- pliki PS01C3 zawierają kompletną aplikację z panelem osadzonym w firmware i również są przeznaczone do wgrania od adresu `0x0`;
+
 - do nowych instalacji należy wybierać najnowszy plik przeznaczony dokładnie dla danego modelu.
 
 Nie wolno wgrywać firmware przeznaczonego dla innego modelu sterownika. Poszczególne modele mają inne mapowanie GPIO, liczbę ekspanderów i adresy urządzeń I²C.
@@ -198,7 +164,7 @@ Monitor portu szeregowego:
 pio device monitor
 ```
 
-Firmware PS01C3 buduje się analogicznie w katalogu `SMARTBOB-PS01C3`. Panel PS01C3 jest osadzony bezpośrednio w aplikacji, dlatego nie wymaga osobnego `uploadfs`.
+
 
 ## Dokumentacja sprzętowa
 
