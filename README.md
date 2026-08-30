@@ -48,7 +48,6 @@ Najważniejsze cechy sprzętowe:
 
 W wydaniu z 2026-08-28 poprawiono polaryzację wejść bezpośrednich, konfigurację jednego TMP102 oraz obsługę płytki bez lokalnych ekspanderów MCP. Przed odczytem TMP102 sprawdzana jest jego obecność, dzięki czemu brak odpowiedzi urządzenia nie powoduje ciągłego komunikatu I²C `Error 263`.
 
-Projekt źródłowy: [`SM-LITE-0202R`](SM-LITE-0202R)
 
 Zalecany aktualny plik:
 
@@ -71,8 +70,6 @@ Najważniejsze cechy sprzętowe:
 - Ethernet oraz Wi-Fi;
 - dodatkowa magistrala I²C1: SDA GPIO16, SCL GPIO32.
 
-Projekt źródłowy: [`SM-LITE-0808R`](SM-LITE-0808R)
-
 Zalecany aktualny plik:
 
 - [`SMARTBOB-0808R-full-2026-08-25.bin`](SMARTBOBSOFT/SMARTBOB-0808R-full-2026-08-25.bin)
@@ -94,7 +91,6 @@ Najważniejsze cechy sprzętowe:
 - Ethernet oraz Wi-Fi;
 - dodatkowa magistrala I²C1: SDA GPIO16, SCL GPIO14.
 
-Projekt źródłowy: [`SM-LITE-1616R`](SM-LITE-1616R)
 
 Zalecany aktualny plik:
 
