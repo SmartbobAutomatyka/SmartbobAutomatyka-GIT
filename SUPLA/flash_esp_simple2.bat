@@ -19,7 +19,8 @@ echo Baud   : %BAUD%
 echo.
 echo 1. List COM ports
 echo 2. Select COM port
-echo 3. Flash from current folder
+echo 3. Flash from current folder (with erase)
+echo 4. Flash reset (erase_flash only)
 echo 0. Exit
 echo.
 set /p "OPT=> "
@@ -27,6 +28,7 @@ set /p "OPT=> "
 if "%OPT%"=="1" goto list_ports
 if "%OPT%"=="2" goto select_port
 if "%OPT%"=="3" goto flash
+if "%OPT%"=="4" goto flash_reset
 if "%OPT%"=="0" goto end
 goto menu
 
@@ -179,15 +181,21 @@ exit /b
 
 :flash_merged
 cls
-echo Flashing merged image:
+echo Flashing merged image (with prior erase):
 echo %MERGED%
 echo.
 echo Port : %PORT%
 echo Baud : %BAUD%
 echo.
-choice /M "Start flashing"
+choice /M "Start erase and flash"
 if errorlevel 2 goto menu
 
+echo.
+echo Erasing flash...
+"%ESPTOOL%" --chip esp32 --port %PORT% --baud %BAUD% erase_flash
+
+echo.
+echo Flashing firmware...
 "%ESPTOOL%" --chip esp32 --port %PORT% --baud %BAUD% --before default_reset --after hard_reset ^
 write_flash -z --flash_mode keep --flash_freq keep --flash_size keep ^
 0x0 "%MERGED%"
@@ -198,7 +206,7 @@ goto menu
 
 :flash_multi
 cls
-echo Flashing from 4 files:
+echo Flashing from 4 files (with prior erase):
 echo.
 echo Bootloader : %BOOT%
 echo Partitions : %PART%
@@ -208,15 +216,54 @@ echo.
 echo Port : %PORT%
 echo Baud : %BAUD%
 echo.
-choice /M "Start flashing"
+choice /M "Start erase and flash"
 if errorlevel 2 goto menu
 
+echo.
+echo Erasing flash...
+"%ESPTOOL%" --chip esp32 --port %PORT% --baud %BAUD% erase_flash
+
+echo.
+echo Flashing firmware...
 "%ESPTOOL%" --chip esp32 --port %PORT% --baud %BAUD% --before default_reset --after hard_reset ^
 write_flash -z --flash_mode keep --flash_freq keep --flash_size keep ^
 0x1000 "%BOOT%" ^
 0x8000 "%PART%" ^
 0xe000 "%APP0%" ^
 0x10000 "%APP%"
+
+echo.
+pause
+goto menu
+
+:flash_reset
+if "%PORT%"=="" (
+    echo.
+    echo Select COM port first.
+    pause
+    goto menu
+)
+
+if not exist "%ESPTOOL%" (
+    echo.
+    echo Missing file:
+    echo %ESPTOOL%
+    echo.
+    echo Put esptool.exe in the same folder as this script.
+    pause
+    goto menu
+)
+
+cls
+echo WARNING: This will completely erase the flash memory 
+echo of the device on port %PORT%!
+echo.
+choice /M "Are you sure you want to erase flash"
+if errorlevel 2 goto menu
+
+echo.
+echo Erasing flash...
+"%ESPTOOL%" --chip esp32 --port %PORT% --baud %BAUD% erase_flash
 
 echo.
 pause
