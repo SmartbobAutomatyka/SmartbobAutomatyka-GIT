@@ -1,6 +1,6 @@
 # SMARTBOB — firmware sterowników i czujników
 
-Repozytorium zawiera firmware dla sterowników SMARTBOB SM-LITE oraz czujnika obecności SMARTBOB PS01C3. Gotowe pliki binarne znajdują się w katalogu [`SMARTBOBSOFT`](SMARTBOBSOFT).
+Repozytorium zawiera firmware dla sterowników SMARTBOB SM-LITE. Gotowe pliki binarne znajdują się w katalogu [`SMARTBOBSOFT`](SMARTBOBSOFT).
 
 ## Dostępne urządzenia
 
