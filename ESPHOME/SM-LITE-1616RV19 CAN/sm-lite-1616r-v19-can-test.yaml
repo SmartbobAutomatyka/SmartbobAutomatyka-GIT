@@ -1,0 +1,1093 @@
+api:
+  encryption:
+    key: "xxxxxxxxxxxxxxx"
+  reboot_timeout: 0s
+
+# OTA
+ota:
+  - platform: esphome
+  #password: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# NAME / NAZWA
+substitutions:
+  name: sm-lite-1616r-v19
+  friendly_name: sm-lite-1616r-v19
+
+# DATA
+esphome:
+  name: ${name}
+  comment: ${friendly_name}
+  project:
+    name: "smartbob.sm-lite-1616r"
+    version: "1.0.0"
+  on_boot:
+    then:
+      - display.page.show: page1
+      - delay: 7s
+      - display.page.show: page2
+  # ADD MAC NUMBER TO NAME / DODAWANIE ADRESU MAC DO NAZWY
+  name_add_mac_suffix: false
+
+# PROCESOR
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      # Obejscia bledow sprzetowych kontrolera CAN (TWAI) w ESP32
+      CONFIG_TWAI_ERRATA_FIX_BUS_OFF_REC: y
+      CONFIG_TWAI_ERRATA_FIX_TX_INTR_LOST: y
+      CONFIG_TWAI_ERRATA_FIX_RX_FRAME_INVALID: y
+      CONFIG_TWAI_ERRATA_FIX_RX_FIFO_CORRUPT: y
+      CONFIG_TWAI_ERRATA_FIX_LISTEN_ONLY_DOM: y
+
+globals:
+  - id: last_rx_ms
+    type: uint32_t
+    initial_value: '0'
+  - id: tx_counter
+    type: uint32_t
+    initial_value: '0'
+  - id: can_node
+    type: uint8_t
+    initial_value: '0'      # 0 = przyjmij pierwsza plytke, ktora sie odezwie
+
+# LOGING LEVEL / LOGOWANIE
+logger:
+  level: DEBUG
+
+# 1WIRE
+one_wire:
+  - platform: gpio
+    id: com_one_wire
+    pin: GPIO32
+
+# CAN
+# Ramka plytki CAN V1: ID 0x100 + node, 8 bajtow:
+#   0..3 licznik, 4 node, 5 wejscia, 6..7 = 0x5A 0xA5
+# Bity wejsc wg opisu na PCB:
+#   bit0 = PCB IN6, bit1 = PCB IN1, bit2 = PCB IN2,
+#   bit3 = PCB IN3, bit4 = PCB IN5, bit5 = PCB IN4
+canbus:
+  - platform: esp32_can
+    id: can_bus
+    tx_pin: GPIO33     # -> TXD/CTX transceivera
+    rx_pin: GPIO39     # <- RXD/CRX transceivera
+    can_id: 0x100
+    bit_rate: 125KBPS
+    on_frame:
+      - can_id: 0x100
+        can_id_mask: 0x700      # przyjmuje 0x100..0x1FF
+        use_extended_id: false
+        then:
+          - lambda: |-
+              if (x.size() != 8 || x[6] != 0x5A || x[7] != 0xA5) return;
+              uint8_t node = x[4];
+              ESP_LOGD("can", "ID 0x%03X node %u wejscia 0x%02X", can_id, node, x[5]);
+              if (node == 0) return;                        // ramka nie z plytki CAN V1
+              if (id(can_node) == 0) id(can_node) = node;   // przywiaz sie do pierwszej plytki
+              if (node != id(can_node)) return;             // inne plytki ignorujemy
+              uint8_t in = x[5];
+              id(in1).publish_state(in & 0x02);   // PB0
+              id(in2).publish_state(in & 0x04);   // PB1
+              id(in3).publish_state(in & 0x08);   // PB3
+              id(in4).publish_state(in & 0x20);   // PB5
+              id(in5).publish_state(in & 0x10);   // PB4
+              id(in6).publish_state(in & 0x01);   // PA2
+              if (id(node_id).state != node) id(node_id).publish_state(node);
+              id(last_rx_ms) = millis();
+              if (!id(board_online).state) id(board_online).publish_state(true);
+
+# UART-RS485
+uart:
+  - id: rs485_uart
+    rx_pin: 13
+    tx_pin: 4
+    baud_rate: 9600
+    stop_bits: 1
+    data_bits: 8
+    parity: NONE
+    debug:
+      direction: BOTH
+
+modbus:
+  - id: modbus1
+    uart_id: rs485_uart
+    flow_control_pin:
+      number: GPIO2
+
+modbus_controller:
+  - id: modbus_device_1
+    address: 0x01
+    modbus_id: modbus1
+    setup_priority: -10
+    update_interval: 3s
+
+  - id: modbus_device_2
+    address: 0x02
+    modbus_id: modbus1
+    setup_priority: -9
+    update_interval: 3s
+
+  - id: modbus_device_3
+    address: 0x03
+    modbus_id: modbus1
+    setup_priority: -9
+    update_interval: 3s
+
+  - id: modbus_device_4
+    address: 0x04
+    modbus_id: modbus1
+    setup_priority: -9
+    update_interval: 3s
+
+# LAN OR WIFI
+##### WIFI SECTION / KONFIGURACJA WIFI
+
+# Improv via Serial / Automatyczna konfiguracja za pomoca kabla USB przez https://www.improv-wifi.com/
+# improv_serial:
+
+## SETUP WIFI AS CLIENT MODE / USTAW WIFI JAKO KLIENTA
+#wifi:
+  #id: eth
+  #ssid: "MY_WIFI_SSID"
+  #password: "MY_WIFI_PASS"
+
+## SETUP WIFI AS ACCESS POINT / USTAW WIFI W TRYB PRACY ACCESS POINT
+  #ap:
+  #  password: "MY_WIFI_PASS"
+
+#### WIFI END
+##### LAN SECTION/ KONFIGURACJA LAN
+ethernet:
+  type: LAN8720
+  mdc_pin: GPIO23
+  mdio_pin: GPIO18
+  clk_mode: GPIO17_OUT
+  phy_addr: 1
+  id: eth
+
+  #manual_ip:
+  #  static_ip: 192.168.0.50
+  #  gateway: 192.168.0.1
+  #  subnet: 255.255.255.0
+  #  dns1 : 8.8.8.8
+  #  dns2 : 8.8.4.4
+
+#### LAN END
+
+# RESTART
+button:
+  - platform: restart
+    name: "Restart sterownika"
+
+# SENSOR CONFIGURATION / KONFIGURACJA CZUJNIKÓW
+sensor:
+  - platform: modbus_controller
+    modbus_controller_id: modbus_device_1
+    name: "ADR1 Temperatura 1"
+    id: modbus_temperature_1
+    register_type: read
+    address: 1
+    value_type: S_WORD
+    unit_of_measurement: "°C"
+    device_class: temperature
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_device_1
+    name: "ADR1 Wilgotność 1"
+    id: modbus_humidity_1
+    register_type: read
+    address: 2
+    value_type: U_WORD
+    unit_of_measurement: "%"
+    device_class: humidity
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_device_2
+    name: "ADR1 Temperatura 2"
+    id: modbus_temperature_2
+    register_type: read
+    address: 1
+    value_type: S_WORD
+    unit_of_measurement: "°C"
+    device_class: temperature
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_device_3
+    name: "ADR1 Temperatura 3"
+    id: modbus_temperature_3
+    register_type: read
+    address: 1
+    value_type: S_WORD
+    unit_of_measurement: "°C"
+    device_class: temperature
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_device_4
+    name: "ADR1 Temperatura 4"
+    id: modbus_temperature_4
+    register_type: read
+    address: 1
+    value_type: S_WORD
+    unit_of_measurement: "°C"
+    device_class: temperature
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: template
+    id: node_id
+    name: "CAN node ID"
+    accuracy_decimals: 0
+    entity_category: diagnostic
+
+  #- platform: dallas_temp
+  #  id: sensor_1wire
+  #  name: "Temperatura DS18B20"
+  #  update_interval: 10s
+
+  # SCT SENSOR / KONFIGURACJA PRZEKŁADNIKA SCT
+  #- platform: ct_clamp
+  #  id: sensor_ct_clampget_raw_state()
+  #  sensor: sensor_adc_ct
+  #  name: "SCT Current"
+  #  update_interval: 1s
+  #  filters:
+  #    - calibrate_linear:
+  #        - 0 -> 0
+  #        - 0.1 -> 2.5
+
+  # SCT ADC / KANAŁ POMIARU SCT
+  #- platform: adc
+  #  pin: GPIO39
+  #  id: sensor_adc_ct
+  #  attenuation: 11db
+
+  # EXT ADC INPUT 2 / KANAŁ POMIARU NAPIĘCIA 2
+  - platform: adc
+    pin: GPIO34
+    id: sensor_adc_ext_2
+    attenuation: 12db
+    name: "ADC 2"
+    samples: 32
+    sampling_mode: avg
+    update_interval: 1s
+    unit_of_measurement: "V"
+    device_class: "voltage"
+    accuracy_decimals: 3
+    filters:
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+      - offset: -0.142
+      - calibrate_linear:
+          - 0.011 -> 1.3
+          - 0.085 -> 2
+          - 0.403 -> 5
+          - 0.947 -> 10
+          - 1.489 -> 15
+          - 2.029 -> 20
+          - 2.563 -> 25
+          - 2.882 -> 28
+
+  # EXT ADC INPUT 1 / KANAŁ POMIARU NAPIĘCIA 1
+  - platform: adc
+    pin: GPIO35
+    id: sensor_adc_ext_1
+    attenuation: 12db
+    name: "ADC 1"
+    samples: 32
+    sampling_mode: avg
+    update_interval: 1s
+    unit_of_measurement: "V"
+    device_class: "voltage"
+    accuracy_decimals: 3
+    filters:
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+      - offset: -0.142
+      - calibrate_linear:
+          - 0.011 -> 1.3
+          - 0.085 -> 2
+          - 0.403 -> 5
+          - 0.947 -> 10
+          - 1.489 -> 15
+          - 2.029 -> 20
+          - 2.563 -> 25
+          - 2.882 -> 28
+
+  # ADC INPUT VOLTAGE CHANNEL / KANAŁ POMIARU NAPIĘCIA ZASILANIA
+  - platform: adc
+    pin: GPIO36
+    id: sensor_adc_power_supply
+    attenuation: 12db
+    name: "Power"
+    samples: 32
+    sampling_mode: avg
+    update_interval: 1s
+    unit_of_measurement: "V"
+    device_class: "voltage"
+    accuracy_decimals: 3
+    filters:
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+      - offset: -0.142
+      - calibrate_linear:
+          - 0.011 -> 1.3
+          - 0.085 -> 2
+          - 0.403 -> 5
+          - 0.947 -> 10
+          - 1.489 -> 15
+          - 2.029 -> 20
+          - 2.563 -> 25
+          - 2.882 -> 28
+
+  # TMP102 OVER TEMP CONFIGURATION 1 / KONFIGURACJA ZACHOWANIA PO PRZEKROCZENIU TEMPERATURY CZUJNIK 1
+  - platform: tmp102
+    i2c_id: com_i2c_bus_a
+    name: "Temperatura PCB 1"
+    address: 0x48
+    id: sensor_pcb_temp_1
+    update_interval: 8s
+    on_value:
+      if:
+        condition:
+          sensor.in_range:
+            id: sensor_pcb_temp_1
+            above: 70.0
+        then:
+          - display.page.show: page3
+          - switch.turn_off: relay_01
+          - switch.turn_off: relay_02
+          - switch.turn_off: relay_03
+          - switch.turn_off: relay_04
+          - switch.turn_off: relay_05
+          - switch.turn_off: relay_06
+          - switch.turn_off: relay_07
+          - switch.turn_off: relay_08
+          - switch.turn_off: relay_09
+          - switch.turn_off: relay_10
+          - switch.turn_off: relay_11
+          - switch.turn_off: relay_12
+          - switch.turn_off: relay_13
+          - switch.turn_off: relay_14
+          - switch.turn_off: relay_15
+          - switch.turn_off: relay_16
+
+  # TMP102 OVER TEMP CONFIGURATION 2 / KONFIGURACJA ZACHOWANIA PO PRZEKROCZENIU TEMPERATURY CZUJNIK 2
+  - platform: tmp102
+    i2c_id: com_i2c_bus_a
+    name: "Temperatura PCB 2"
+    address: 0x49
+    id: sensor_pcb_temp_2
+    update_interval: 8s
+    on_value:
+      if:
+        condition:
+          sensor.in_range:
+            id: sensor_pcb_temp_2
+            above: 70.0
+        then:
+          - display.page.show: page3
+          - switch.turn_off: relay_01
+          - switch.turn_off: relay_02
+          - switch.turn_off: relay_03
+          - switch.turn_off: relay_04
+          - switch.turn_off: relay_05
+          - switch.turn_off: relay_06
+          - switch.turn_off: relay_07
+          - switch.turn_off: relay_08
+          - switch.turn_off: relay_09
+          - switch.turn_off: relay_10
+          - switch.turn_off: relay_11
+          - switch.turn_off: relay_12
+          - switch.turn_off: relay_13
+          - switch.turn_off: relay_14
+          - switch.turn_off: relay_15
+          - switch.turn_off: relay_16
+
+  # TIME / CZAS
+  - platform: uptime
+    name: Uptime Sensor
+    id: sensor_uptime
+    internal: true
+    update_interval: 60s
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human
+            state: !lambda |-
+              int seconds = round(id(sensor_uptime).get_raw_state());
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? to_string(days) + "d " : "") +
+                (hours ? to_string(hours) + "h " : "") +
+                (minutes ? to_string(minutes) + "m " : "") +
+                (to_string(seconds) + "s")
+              ).c_str();
+
+  # UPTIME ON HA/ CZAS ŻYCIA HA
+  - platform: uptime
+    name: "Time text on HA"
+    id: upt_time_text
+    internal: true
+
+# TIME CONFIGURATION / KONFIGRUACJA ZEGARA CZASU RZECZYWISTEGO
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+  - platform: sntp
+    id: sntp_time
+    timezone: Europe/Sofia
+    servers:
+      - 0.pool.ntp.org
+      - 1.pool.ntp.org
+      - 2.pool.ntp.org
+
+# I2C DATA LINE CONFIGURATION / KONFIGURACJA MAGISTRALI I2C
+i2c:
+  - id: com_i2c_bus_a
+    sda: 15
+    scl: 5
+    scan: true
+    frequency: 400kHz
+  - id: com_i2c_bus_b
+    sda: 16
+    scl: 14
+    scan: true
+    frequency: 400kHz
+
+# MCP23017 EXPANDERS IN AND OUT / KONFIGRUACJA EKSPANDERÓW WEJŚĆ I WYJŚĆ
+mcp23017:
+  - id: 'mcp23017_hub_2'
+    address: 0x20
+    i2c_id: com_i2c_bus_a
+  - id: 'mcp23017_hub_1'
+    address: 0x21
+    i2c_id: com_i2c_bus_a
+
+# OUTPUTS / WYJŚCIA
+switch:
+
+  # LED1/LED2 na plytce CAN V1 (bit0/bit1 w ramce z ESP32)
+  - platform: template
+    id: led1
+    name: "CAN LED1"
+    optimistic: true
+    on_turn_on:  { then: [ script.execute: send_leds ] }
+    on_turn_off: { then: [ script.execute: send_leds ] }
+  - platform: template
+    id: led2
+    name: "CAN LED2"
+    optimistic: true
+    on_turn_on:  { then: [ script.execute: send_leds ] }
+    on_turn_off: { then: [ script.execute: send_leds ] }
+
+#KONFIGURACJA REAKCJI WEJŚĆ, SYGNAŁ VCC, GND LUB OBA
+  - platform: gpio
+    name: "SIGNAL GND/VCC REACTION - OFF GND"
+    pin: GPIO12
+    id: in_vcc
+    restore_mode: RESTORE_DEFAULT_OFF
+
+#KONFIGURACJA WYJŚĆ
+  - platform: gpio
+    name: "RELAY-01"
+    id: relay_01
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 8
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-02"
+    id: relay_02
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 9
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-03"
+    id: relay_03
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 10
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-04"
+    id: relay_04
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 11
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-05"
+    id: relay_05
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 12
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-06"
+    id: relay_06
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 13
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-07"
+    id: relay_07
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 14
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-08"
+    id: relay_08
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 15
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-09"
+    id: relay_09
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 2
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-10"
+    id: relay_10
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 3
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-11"
+    id: relay_11
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 4
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-12"
+    id: relay_12
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 5
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-13"
+    id: relay_13
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 6
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-14"
+    id: relay_14
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 7
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-15"
+    id: relay_15
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 1
+      mode: OUTPUT
+      inverted: false
+  - platform: gpio
+    name: "RELAY-16"
+    id: relay_16
+    pin:
+      mcp23xxx: mcp23017_hub_1
+      number: 0
+      mode: OUTPUT
+      inverted: false
+
+# INPUTS / WEJŚCIA
+binary_sensor:
+  - platform: template
+    id: board_online
+    name: "CAN plytka online"
+    device_class: connectivity
+  - platform: template
+    id: in1
+    name: "CAN IN1"
+    on_press:
+      then:
+        - switch.turn_on: relay_01
+    on_release:
+      then:
+        - switch.turn_off: relay_01
+  - platform: template
+    id: in2
+    name: "CAN IN2"
+    on_press:
+      then:
+        - switch.turn_on: relay_02
+    on_release:
+      then:
+        - switch.turn_off: relay_02
+  - platform: template
+    id: in3
+    name: "CAN IN3"
+  - platform: template
+    id: in4
+    name: "CAN IN4"
+  - platform: template
+    id: in5
+    name: "CAN IN5"
+  - platform: template
+    id: in6
+    name: "CAN IN6"
+
+
+  - platform: gpio
+    name: "INPUT-01"
+    id: input_01
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 4
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 30ms
+    on_press:
+      then:
+        - switch.toggle: relay_01
+  - platform: gpio
+    name: "INPUT-02"
+    id: input_02
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 5
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 30ms
+    on_press:
+        - switch.turn_on: led1      # zielony LED na plytce CAN V1
+    on_release:
+      then:
+        - switch.turn_off: led1
+
+  - platform: gpio
+    name: "INPUT-03"
+    id: input_03
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 6
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 30ms
+    on_press:
+      then:
+        - switch.toggle: relay_03
+  - platform: gpio
+    name: "INPUT-04"
+    id: input_04
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 7
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 30ms
+    on_press:
+      then:
+        - switch.toggle: relay_04
+  - platform: gpio
+    name: "INPUT-05"
+    id: input_05
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 3
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 30ms
+    on_press:
+      then:
+        - switch.toggle: relay_05
+  - platform: gpio
+    name: "INPUT-06"
+    id: input_06
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 2
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 30ms
+    on_press:
+      then:
+        - switch.toggle: relay_06
+  - platform: gpio
+    name: "INPUT-07"
+    id: input_07
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 1
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 30ms
+    on_press:
+      then:
+        - switch.toggle: relay_07
+  - platform: gpio
+    name: "INPUT-08"
+    id: input_08
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 0
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 30ms
+    on_press:
+      then:
+        - switch.toggle: relay_08
+  - platform: gpio
+    name: "INPUT-09"
+    id: input_09
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 15
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 30ms
+    on_press:
+      then:
+        - switch.toggle: relay_09
+  - platform: gpio
+    name: "INPUT-10"
+    id: input_10
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 14
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 30ms
+    on_press:
+      then:
+        - switch.toggle: relay_10
+  - platform: gpio
+    name: "INPUT-11"
+    id: input_11
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 13
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 30ms
+    on_press:
+      then:
+        - switch.toggle: relay_11
+  - platform: gpio
+    name: "INPUT-12"
+    id: input_12
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 12
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 30ms
+    on_press:
+      then:
+        - switch.toggle: relay_12
+  - platform: gpio
+    name: "INPUT-13"
+    id: input_13
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 11
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 30ms
+    on_press:
+      then:
+        - switch.toggle: relay_13
+  - platform: gpio
+    name: "INPUT-14"
+    id: input_14
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 10
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 30ms
+    on_press:
+      then:
+        - switch.toggle: relay_14
+  - platform: gpio
+    name: "INPUT-15"
+    id: input_15
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 9
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 30ms
+    on_press:
+      then:
+        - switch.toggle: relay_15
+  - platform: gpio
+    name: "INPUT-16"
+    id: input_16
+    pin:
+      mcp23xxx: mcp23017_hub_2
+      number: 8
+      mode:
+        input: true
+        pullup: false
+      inverted: true
+    filters:
+      - delayed_on: 30ms
+    on_press:
+      then:
+        - switch.toggle: relay_16
+
+script:
+  # Wysylamy tylko, gdy plytka jest online - nie nadajemy w pusta/odpieta magistrale
+  # (bez ACK ESP32 wpada w bus-off)
+  - id: send_leds
+    mode: queued
+    then:
+      - if:
+          condition:
+            binary_sensor.is_on: board_online
+          then:
+            - canbus.send:
+                canbus_id: can_bus
+                can_id: 0x100
+                data: !lambda |-
+                  uint32_t c = id(tx_counter)++;
+                  uint8_t bits = (id(led1).state ? 0x01 : 0) | (id(led2).state ? 0x02 : 0);
+                  return std::vector<uint8_t>{
+                    (uint8_t) c, (uint8_t)(c >> 8), (uint8_t)(c >> 16), (uint8_t)(c >> 24),
+                    0x00, bits, 0x5A, 0xA5 };
+
+interval:
+  # Plytka gasi LEDy po 12 s bez ramki - odswiezamy co 5 s
+  - interval: 5s
+    then:
+      - script.execute: send_leds
+  - interval: 1s
+    then:
+      - lambda: |-
+          // Plytka nadaje co max 5 s - po 12 s ciszy uznajemy ja za offline.
+          // Wejscia (i przekazniki) zostaja w ostatnim stanie, zeby przerwa
+          // w komunikacji nie przelaczala przekaznikow.
+          if (id(board_online).state && millis() - id(last_rx_ms) > 12000) {
+            id(board_online).publish_state(false);
+          }
+
+          twai_status_info_t s;
+          if (twai_get_status_info(&s) != ESP_OK) return;
+
+          // Stan: 0 STOPPED, 1 RUNNING, 2 BUS_OFF, 3 RECOVERING
+          static uint32_t last_log = 0;
+          if (millis() - last_log > 10000) {
+            last_log = millis();
+            ESP_LOGD("can", "stan %d, TEC %u, REC %u, kolejka TX %u",
+                     (int) s.state, (unsigned) s.tx_error_counter,
+                     (unsigned) s.rx_error_counter, (unsigned) s.msgs_to_tx);
+          }
+
+          // ESPHome sam wychodzi z bus-off; pomagamy dopiero, gdy stoi dluzej niz 5 s
+          static uint32_t bad_since = 0;
+          if (s.state == TWAI_STATE_RUNNING) {
+            bad_since = 0;
+          } else if (bad_since == 0) {
+            bad_since = millis();
+          }
+          bool stuck = bad_since != 0 && millis() - bad_since > 5000;
+          if (stuck && s.state == TWAI_STATE_BUS_OFF) {
+            ESP_LOGW("can", "bus-off - odzyskiwanie");
+            twai_initiate_recovery();
+          } else if (stuck && s.state == TWAI_STATE_STOPPED) {
+            ESP_LOGW("can", "kontroler zatrzymany - start");
+            twai_start();
+          } else if (stuck && s.state == TWAI_STATE_RECOVERING) {
+            // Errata ESP32: odzyskiwanie konczy sie dopiero przy TEC = 0 i REC = 0,
+            // a REC potrafi urosnac juz po wejsciu w bus-off -> utyka na zawsze.
+            // Jak CONFIG_TWAI_ERRATA_FIX_BUS_OFF_REC: wymuszamy ponowny bus-off (TEC 0 -> 255),
+            // co zeruje REC; sterownik i ESPHome odzyskuja od nowa.
+            static uint32_t last_kick = 0;
+            if (millis() - last_kick > 5000) {
+              last_kick = millis();
+              ESP_LOGW("can", "odzyskiwanie utknelo (TEC %u, REC %u) - wymuszam ponowny bus-off",
+                       (unsigned) s.tx_error_counter, (unsigned) s.rx_error_counter);
+              volatile uint32_t *twai = (volatile uint32_t *) 0x3FF6B000;  // rejestry TWAI w ESP32
+              twai[0x00 / 4] |= 1;      // MODE: tryb reset (TEC zapisywalny tylko w nim)
+              twai[0x3C / 4] = 0;       // TEC = 0
+              twai[0x3C / 4] = 255;     // TEC = 255 -> bus-off, REC = 0
+            }
+          }
+
+          // Plytka byla online, a od 30 s brak ramek mimo pracy kontrolera ->
+          // stop/start kontrolera (sterownik zostaje zainstalowany).
+          // UWAGA: nie wolno wolac id(can_bus)->setup() - esp32_can liczy kontrolery
+          // statycznym licznikiem i drugie wywolanie oznacza canbus jako FAILED.
+          static uint32_t last_kick_run = 0;
+          if (s.state == TWAI_STATE_RUNNING && id(last_rx_ms) != 0 &&
+              millis() - id(last_rx_ms) > 30000 && millis() - last_kick_run > 30000) {
+            last_kick_run = millis();
+            ESP_LOGW("can", "brak ramek 30 s - stop/start kontrolera CAN (TEC %u, REC %u)",
+                     (unsigned) s.tx_error_counter, (unsigned) s.rx_error_counter);
+            twai_stop();
+            twai_start();
+          }
+
+
+# WEB SERWER / SERWER WWW
+web_server:
+  port: 80
+  id: com_web_server
+
+# TEXT / USTAWIENIA TEXT
+text_sensor:
+  - platform: template
+    name: "ESP32-M03 Uptime"
+    id: uptime_human
+    icon: mdi:clock-start
+  - platform: template
+    name: "IP"
+    id: ip_address
+    entity_category: diagnostic
+    icon: "mdi:ip-network"
+    #lambda: return { id(eth).get_ip_address().str() };
+    lambda: |-
+      char buf[40];
+      id(eth).get_ip_addresses()[0].str_to(buf);
+      return {std::string(buf)};
+    update_interval: 10s
+
+# FONT / CZCIONKI
+font:
+  - file: "gfonts://Roboto"
+    id: text_font
+    size: 12
+
+  - file: "gfonts://Material+Symbols+Outlined"
+    id: icons
+    size: 15
+    glyphs: [
+      "\U0000eb2f", # lan
+      "\U0000e875", # server
+      "\U0000e8b5", # clock
+      "\U0000e1ff" # thermometer
+    ]
+
+  - file: "gfonts://Material+Symbols+Outlined"
+    id: icons_big
+    size: 30
+    glyphs: [
+      "\U0000e1ff" # thermometer
+    ]
+
+display:
+  - platform: ssd1306_i2c
+    i2c_id: com_i2c_bus_a
+    model: "SSD1306_128X64"
+    id: oled_display
+    pages:
+      - id: page1
+        lambda: |-
+          it.printf(32, 5, id(text_font), "SMARTBOB");
+          it.printf(27, 22, id(text_font), "AUTOMATYKA");
+          it.printf(5, 39, id(text_font), "WWW.SMARTBOB.PL");
+      - id: page2
+        lambda: |-
+          int seconds = round(id(upt_time_text).state);
+          int days = seconds / (24 * 3600);
+          seconds = seconds % (24 * 3600);
+          int hours = seconds / 3600;
+          it.print(0, 0, id(icons), TextAlign::LEFT, "\U0000eb2f");
+          it.printf(18, 1,id(text_font), "%s", id(ip_address).state.c_str());
+          it.print(0, 16, id(icons), TextAlign::LEFT, "\U0000e8b5");
+          it.printf(18,17,id(text_font),"%d dni, %02d godzin",days,hours);
+          it.print(0, 32, id(icons), TextAlign::LEFT, "\U0000e875");
+          it.printf(18, 33, id(text_font), "SM-LITE-1616R");
+          it.print(0, 48, id(icons), TextAlign::LEFT, "\U0000e1ff");
+          it.printf(18, 49, id(text_font), "%.1f°, %.1f°", id(sensor_pcb_temp_1).state, id(sensor_pcb_temp_2).state);
+      - id: page3
+        lambda: |-
+          it.printf(33, 5, id(text_font), "OVERHEAT");
+          it.print(50, 20, id(icons_big), TextAlign::LEFT, "\U0000e1ff");
+          it.printf(33, 52, id(text_font), "%.1f°, %.1f°", id(sensor_pcb_temp_1).state, id(sensor_pcb_temp_2).state);
